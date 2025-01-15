@@ -5,6 +5,7 @@ from vistas.VistaRegistro import VistaRegistro
 from vistas.VistaSinopsis import VistaSinopsis
 from vistas.VistaVotaciones import VistaVotaciones
 from vistas.VistaMisValoraciones import VistaMisValoraciones
+from gestores.GestorPeliculas import GestorPeliculas
 
 class GestorVentanas:
     def __init__(self):
@@ -18,9 +19,12 @@ class GestorVentanas:
         self.vista_principal = None
         self.vista_registro = None
         self.vista_sinopsis = None
-        self.vista_votaciones= None
+        self.vista_votaciones = None
         self.vista_mis_valoraciones = None
         self.username = None
+
+        # Instancia del GestorPeliculas
+        self.gestor_peliculas = GestorPeliculas()
 
     def set_username(self, username):
         """
@@ -46,17 +50,18 @@ class GestorVentanas:
 
     def mostrar_votaciones(self):
         """
-        Muestra la ventana principal.
+        Muestra la ventana de votaciones.
         """
         if not self.vista_votaciones:
             self.vista_votaciones = VistaVotaciones(self, self.username)
-        self._cambiar_ventana(self.vista_votaciones)    
+        self._cambiar_ventana(self.vista_votaciones)
 
     def mostrar_mis_valoraciones(self, username):
         """
         Muestra la ventana de mis valoraciones.
         """
-        self.vista_mis_valoraciones = VistaMisValoraciones(self, username)
+        if not self.vista_mis_valoraciones:
+            self.vista_mis_valoraciones = VistaMisValoraciones(self, username)
         self.vista_mis_valoraciones.show()
 
     def mostrar_registro(self):
@@ -74,7 +79,7 @@ class GestorVentanas:
         :param detalles_pelicula: Diccionario con los detalles de la película.
         """
         if not self.vista_sinopsis:
-            self.vista_sinopsis = VistaSinopsis(self)
+            self.vista_sinopsis = VistaSinopsis(self, self.gestor_peliculas)
         self.vista_sinopsis.mostrar_informacion_pelicula(detalles_pelicula)
         self._cambiar_ventana(self.vista_sinopsis)
 

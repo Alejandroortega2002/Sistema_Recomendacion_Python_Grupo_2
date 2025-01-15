@@ -1,9 +1,9 @@
-from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton, QTextEdit, QGridLayout
+from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton, QTextEdit, QGridLayout, QVBoxLayout
 from PyQt5.QtCore import Qt
-
+from gestores.GestorPeliculas import GestorPeliculas
 
 class VistaSinopsis(QMainWindow):
-    def __init__(self, gestor_ventanas):
+    def __init__(self, gestor_ventanas, gestor_peliculas):
         """
         Inicializa la ventana de sinopsis.
         """
@@ -13,6 +13,9 @@ class VistaSinopsis(QMainWindow):
 
         # Referencia al gestor de ventanas
         self.gestor_ventanas = gestor_ventanas
+
+        # Referencia al gestor de películas
+        self.gestor_peliculas = gestor_peliculas
 
         # Configuración de la interfaz gráfica
         self.central_widget = QWidget()
@@ -55,6 +58,9 @@ class VistaSinopsis(QMainWindow):
         self.synopsis_text = QTextEdit()
         self.synopsis_text.setReadOnly(True)
         self.layout.addWidget(self.synopsis_text)
+        # Layout para mostrar recomendaciones de películas
+        self.recommendations_layout = QVBoxLayout()
+        self.layout.addLayout(self.recommendations_layout)
 
         # Detalles adicionales
         self.details_layout = QGridLayout()
@@ -95,6 +101,48 @@ class VistaSinopsis(QMainWindow):
             value_widget.setStyleSheet("font-size: 18px; color: white;")
             self.details_layout.addWidget(label_widget, i, 0)
             self.details_layout.addWidget(value_widget, i, 1)
+
+        # Mostrar recomendaciones después de cargar los detalles de la película
+        self.mostrar_recomendaciones(detalles.get("title"))
+
+    def mostrar_recomendaciones(self, title):
+        """
+        Muestra las películas recomendadas debajo de la sinopsis.
+
+        :param title: Título de la película para generar recomendaciones.
+        """
+        # Limpiar recomendaciones existentes
+        for i in reversed(range(self.recommendations_layout.count())):
+            widget = self.recommendations_layout.itemAt(i).widget()
+            if widget is not None:
+                widget.deleteLater()
+
+        # Obtener recomendaciones
+        try:
+            recomendaciones = self.gestor_peliculas.recomendar_peliculas(title)
+        except ValueError as e:
+            recomendaciones = []
+
+        # Añadir botones para las recomendaciones
+        if recomendaciones:
+            for pelicula in recomendaciones:
+                button = QPushButton(pelicula)
+                button.clicked.connect(lambda _, p=pelicula: self.mostrar_pelicula_recomendada(p))
+                button.setStyleSheet("font-size: 18px; color: white;")
+                self.recommendations_layout.addWidget(button)
+        else:
+            no_recommendation_label = QLabel("No hay recomendaciones disponibles.")
+            no_recommendation_label.setStyleSheet("font-size: 18px; color: white;")
+            self.recommendations_layout.addWidget(no_recommendation_label)
+
+    def mostrar_pelicula_recomendada(self, title):
+        """
+        Muestra la sinopsis y detalles de una película recomendada.
+
+        :param title: Título de la película recomendada.
+        """
+        detalles = self.gestor_peliculas.obtener_detalles_pelicula(title)
+        self.mostrar_informacion_pelicula(detalles)
 
     def volver(self):
         """
