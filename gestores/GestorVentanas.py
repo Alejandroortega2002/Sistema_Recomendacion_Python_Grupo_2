@@ -1,6 +1,7 @@
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QMessageBox
 from vistas.VistaLogin import VistaLogin
 from vistas.VistaPrincipal import VistaPrincipal
+from vistas.VistaRecomendaciones import VistaRecomendaciones
 from vistas.VistaRegistro import VistaRegistro
 from vistas.VistaSinopsis import VistaSinopsis
 from vistas.VistaVotaciones import VistaVotaciones
@@ -22,6 +23,7 @@ class GestorVentanas:
         self.vista_votaciones = None
         self.vista_mis_valoraciones = None
         self.username = None
+        self.vista_recomendaciones = None
 
         # Instancia del GestorPeliculas
         self.gestor_peliculas = GestorPeliculas()
@@ -82,6 +84,13 @@ class GestorVentanas:
             self.vista_sinopsis = VistaSinopsis(self, self.gestor_peliculas)
         self.vista_sinopsis.mostrar_informacion_pelicula(detalles_pelicula)
         self._cambiar_ventana(self.vista_sinopsis)
+    def mostrar_recomendaciones(self, gestor_peliculas, username):
+        """
+        Muestra la ventana de recomendaciones.
+        """
+        if not self.vista_recomendaciones:
+            self.vista_recomendaciones = VistaRecomendaciones(self, gestor_peliculas, username)
+        self._cambiar_ventana(self.vista_recomendaciones)
 
     def _cambiar_ventana(self, nueva_ventana):
         """
@@ -89,7 +98,7 @@ class GestorVentanas:
 
         :param nueva_ventana: Instancia de la nueva ventana a mostrar.
         """
-        for ventana in [self.vista_login, self.vista_principal, self.vista_registro, self.vista_sinopsis]:
+        for ventana in [self.vista_login, self.vista_principal, self.vista_registro, self.vista_sinopsis,self.vista_recomendaciones]:
             if ventana and ventana.isVisible():
                 ventana.hide()
         nueva_ventana.show()
@@ -100,6 +109,7 @@ class GestorVentanas:
         """
         self.mostrar_login()
         self.app.exec_()
+
 
 if __name__ == "__main__":
     gestor = GestorVentanas()

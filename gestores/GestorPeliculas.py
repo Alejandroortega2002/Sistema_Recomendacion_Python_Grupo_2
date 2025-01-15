@@ -85,7 +85,7 @@ class GestorPeliculas:
 
     def recomendar_peliculas(self, title):
         """
-        Recomienda películas similares a la proporcionada.
+        Recomienda películas similares a la proporcionada, incluyendo sus valores de similitud.
         """
         if title not in self.peliculas_df['title'].values:
             raise ValueError(f"La película '{title}' no se encuentra en el sistema.")
@@ -93,12 +93,21 @@ class GestorPeliculas:
         idx = self.peliculas_df.index[self.peliculas_df['title'] == title][0]
         sim_scores = list(enumerate(self.cosine_sim_synopsis[idx]))
         sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-        sim_indices = [i[0] for i in sim_scores[1:6]]
-        return self.peliculas_df['title'].iloc[sim_indices].tolist()
+
+        # Retornar títulos y similitudes de las películas recomendadas
+        recomendaciones = []
+        for sim_idx, sim_score in sim_scores[1:6]:  # Excluir la película actual
+            recomendaciones.append({
+                "titulo": self.peliculas_df.iloc[sim_idx]['title'],
+                "similitud": sim_score
+            })
+
+        return recomendaciones
 
     def recomendar_peliculas_por_usuario(self, username):
         """
         Recomienda películas basadas en las valoraciones de un usuario específico.
+        Incluye las similitudes del coseno para cada recomendación.
         """
         if username not in self.usuarios_df["Nombre de usuario"].values:
             raise ValueError(f"El usuario '{username}' no se encuentra en el sistema.")
@@ -113,7 +122,7 @@ class GestorPeliculas:
         # Obtener títulos de las películas votadas por el usuario
         peliculas_votadas = [v['title'] for v in votaciones_usuario]
 
-        # Crear una lista para almacenar las películas recomendadas
+        # Crear una lista para almacenar las películas recomendadas con sus similitudes
         recomendaciones = []
 
         # Recomendamos películas basadas en la similitud con las películas votadas
@@ -134,17 +143,24 @@ class GestorPeliculas:
             # Ordenar las películas por similitud (de mayor a menor)
             sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
 
-            # Obtener los índices de las películas más similares
-            sim_indices = [i[0] for i in sim_scores[1:6]]  # Excluir la película actual
+            # Obtener los índices y valores de similitud de las películas más similares
+            for sim_idx, sim_score in sim_scores[1:]:  # Excluir la película actual
+                titulo_pelicula = self.peliculas_df.iloc[sim_idx]['title']
+                if titulo_pelicula not in peliculas_votadas:
+                    recomendaciones.append({'titulo': titulo_pelicula, 'similitud': sim_score})
 
-            # Agregar las películas recomendadas
-            recomendaciones.extend(self.peliculas_df['title'].iloc[sim_indices].tolist())
+        # Eliminar duplicados manteniendo el mayor valor de similitud
+        recomendaciones_unicas = {}
+        for rec in recomendaciones:
+            if rec['titulo'] not in recomendaciones_unicas or rec['similitud'] > recomendaciones_unicas[rec['titulo']]:
+                recomendaciones_unicas[rec['titulo']] = rec['similitud']
 
-        # Filtrar las películas que ya han sido votadas por el usuario
-        recomendaciones = [pelicula for pelicula in recomendaciones if pelicula not in peliculas_votadas]
+        # Convertir el diccionario de nuevo a una lista de recomendaciones
+        recomendaciones = [{'titulo': titulo, 'similitud': similitud} for titulo, similitud in
+                           recomendaciones_unicas.items()]
 
-        # Eliminar duplicados
-        recomendaciones = list(set(recomendaciones))
+        # Ordenar la lista final por similitud de mayor a menor
+        recomendaciones.sort(key=lambda x: x['similitud'], reverse=True)
 
         return recomendaciones
 

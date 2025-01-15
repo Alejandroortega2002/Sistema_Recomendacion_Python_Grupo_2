@@ -107,7 +107,7 @@ class VistaSinopsis(QMainWindow):
 
     def mostrar_recomendaciones(self, title):
         """
-        Muestra las películas recomendadas debajo de la sinopsis.
+        Muestra las películas recomendadas debajo de la sinopsis, incluyendo la similitud.
 
         :param title: Título de la película para generar recomendaciones.
         """
@@ -125,16 +125,17 @@ class VistaSinopsis(QMainWindow):
 
         # Añadir botones para las recomendaciones
         if recomendaciones:
-            for pelicula in recomendaciones:
-                button = QPushButton(pelicula)
-                button.clicked.connect(lambda _, p=pelicula: self.mostrar_pelicula_recomendada(p))
+            for rec in recomendaciones:
+                titulo = rec["titulo"]
+                similitud = rec["similitud"]
+                button = QPushButton(f"{titulo} (Similitud: {similitud:.2f})")
+                button.clicked.connect(lambda _, p=titulo: self.mostrar_pelicula_recomendada(p))
                 button.setStyleSheet("font-size: 18px; color: white;")
                 self.recommendations_layout.addWidget(button)
         else:
             no_recommendation_label = QLabel("No hay recomendaciones disponibles.")
             no_recommendation_label.setStyleSheet("font-size: 18px; color: white;")
             self.recommendations_layout.addWidget(no_recommendation_label)
-
     def mostrar_pelicula_recomendada(self, title):
         """
         Muestra la sinopsis y detalles de una película recomendada.

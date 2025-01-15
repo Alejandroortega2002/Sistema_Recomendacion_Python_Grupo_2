@@ -4,17 +4,10 @@ from gestores.GestorPeliculas import GestorPeliculas
 
 class VistaPrincipal(QMainWindow):
     def __init__(self, gestor_ventanas):
-        """
-        Inicializa la ventana principal de la aplicación.
-        """
         super().__init__()
         self.setWindowTitle("Buscador de Películas")
         self.resize(1200, 800)
-
-        # Referencia al gestor de ventanas
         self.gestor_ventanas = gestor_ventanas
-
-        # Referencia al gestor de películas
         self.gestor_peliculas = GestorPeliculas()
 
         # Configuración de la interfaz gráfica
@@ -35,9 +28,11 @@ class VistaPrincipal(QMainWindow):
         self.button_votaciones.clicked.connect(self.mostrar_votaciones)
         self.menu_layout.addWidget(self.button_votaciones)
 
-        self.button_valoraciones = QPushButton("Valoraciones")
-        self.button_valoraciones.clicked.connect(self.mostrar_valoraciones)
-        self.menu_layout.addWidget(self.button_valoraciones)
+        # Cambia "Valoraciones" a "Recomendaciones"
+        self.button_recomendaciones = QPushButton("Recomendaciones")
+        self.button_recomendaciones.clicked.connect(
+        self.mostrar_recomendaciones)  # Método para abrir las recomendaciones
+        self.menu_layout.addWidget(self.button_recomendaciones)
  
         # Título
         self.label = QLabel("Buscador de Películas")
@@ -172,3 +167,9 @@ class VistaPrincipal(QMainWindow):
         Muestra la vista de valoraciones.
         """
         self.gestor_ventanas.mostrar_valoraciones()
+
+    def mostrar_recomendaciones(self):
+        """
+        Muestra la ventana de recomendaciones.
+        """
+        self.gestor_ventanas.mostrar_recomendaciones(self.gestor_peliculas, self.gestor_ventanas.username)
