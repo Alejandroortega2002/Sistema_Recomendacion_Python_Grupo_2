@@ -172,7 +172,7 @@ class GestorPeliculas:
             self.usuarios_df = pd.concat([self.usuarios_df, nueva_fila], ignore_index=True)
 
         self.usuarios_df.to_csv(self.file_path_usuarios, index=False)
-        return f"Votación registrada: {pelicula} - {puntuacion}/10"
+        return f"Votación registrada: {pelicula} - {puntuacion}/5"
 
     def obtener_valoraciones_usuario(self, username):
         """

@@ -1,5 +1,5 @@
 Nombre de usuario,Contraseña,votaciones
-a,a,"[{'title': '2001: A Space Odyssey', 'rating': 5}, {'title': 'Spotlight', 'rating': 3}, {'title': 'True Grit', 'rating': 4}, {'title': '12 Angry Men', 'rating': 2}]"
+a,a,"[{'title': '2001: A Space Odyssey', 'rating': 5}, {'title': 'Spotlight', 'rating': 3}, {'title': 'True Grit', 'rating': 4}, {'title': '12 Angry Men', 'rating': 2}, {'title': 'It', 'rating': 3}, {'title': 'Finding Nemo', 'rating': 4}]"
 Pedro,2002,
 Miguel,1234,"[{'title': 'Avengers: Endgame', 'rating': 5}, {'title': 'Black Panter', 'rating': 5}, {'title': 'Titanic', 'rating': 5}]"
 aaa,aaa,[]
