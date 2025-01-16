@@ -2,12 +2,25 @@ from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButt
 from PyQt5 import QtCore, QtGui, QtNetwork
 from PyQt5.QtCore import Qt
 
-
 class VistaSinopsis(QMainWindow):
+    """
+    Clase que representa la ventana de sinopsis de una película.
+    Muestra los detalles de una película y ofrece recomendaciones basadas en ella.
+    """
+
+    # Constructor de la clase
+    """
+    Inicializa la ventana de sinopsis, configura la interfaz gráfica
+    y conecta los eventos de los botones.
+
+    Parámetros:
+        - gestor_ventanas: Instancia del gestor de ventanas para manejar la navegación.
+        - gestor_peliculas: Instancia del gestor de películas para manejar los datos.
+
+    Excepciones manejadas:
+        - Exception: Cualquier error durante la inicialización del gestor de películas o la interfaz.
+    """
     def __init__(self, gestor_ventanas, gestor_peliculas):
-        """
-        Inicializa la ventana de sinopsis.
-        """
         super().__init__()
         self.setWindowTitle("Sinopsis de la Película")
         self.resize(1200, 800)
@@ -102,12 +115,17 @@ class VistaSinopsis(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error Crítico", f"Error al inicializar la ventana: {str(e)}")
 
-    def mostrar_informacion_pelicula(self, detalles):
-        """
-        Muestra la información de la película en la vista.
+    # Método para mostrar información de una película
+    """
+    Muestra la información de la película en la vista.
 
-        :param detalles: Diccionario con los detalles de la película.
-        """
+    Parámetros:
+        - detalles (dict): Diccionario con los detalles de la película.
+
+    Excepciones manejadas:
+        - Exception: Cualquier error al cargar la información de la película.
+    """
+    def mostrar_informacion_pelicula(self, detalles):
         try:
             self.title_label.setText(detalles.get("title", "Título no disponible"))
             self.synopsis_text.setText(detalles.get("synopsis", "Sinopsis no disponible"))
@@ -139,10 +157,18 @@ class VistaSinopsis(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al cargar información de la película: {str(e)}")
 
+    # Método para mostrar películas recomendadas
+    """
+    Muestra las películas recomendadas en formato de cuadrícula.
+
+    Parámetros:
+        - title (str): Título de la película base para las recomendaciones.
+
+    Excepciones manejadas:
+        - ValueError: Si no se encuentran recomendaciones.
+        - Exception: Cualquier error al cargar las recomendaciones.
+    """
     def mostrar_recomendaciones(self, title):
-        """
-        Muestra las películas recomendadas en formato de cuadrícula.
-        """
         try:
             # Limpiar la cuadrícula de recomendaciones
             while self.recommendations_layout.count():
@@ -192,7 +218,7 @@ class VistaSinopsis(QMainWindow):
                         row += 2
             else:
                 raise ValueError("No se encontraron recomendaciones para esta película.")
-
+            
         except ValueError as ve:
             no_recommendation_label = QLabel(str(ve))
             no_recommendation_label.setStyleSheet("font-size: 18px; color: white;")
@@ -200,11 +226,18 @@ class VistaSinopsis(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al cargar recomendaciones: {str(e)}")
 
+    # Método para manejar la finalización de la solicitud de imagen
+    """
+    Maneja la finalización de la solicitud de imagen y asigna la imagen al botón correspondiente.
+
+    Parámetros:
+        - reply (QtNetwork.QNetworkReply): Respuesta de la solicitud de imagen.
+
+    Excepciones manejadas:
+        - Exception: Cualquier error al procesar la imagen.
+    """
     @QtCore.pyqtSlot(QtNetwork.QNetworkReply)
     def onFinished(self, reply):
-        """
-        Maneja la finalización de la solicitud de imagen y asigna la imagen al botón correspondiente.
-        """
         try:
             button = self.active_requests.pop(reply, None)
             if button:
@@ -218,22 +251,31 @@ class VistaSinopsis(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al cargar imagen: {str(e)}")
 
-    def mostrar_pelicula_recomendada(self, title):
-        """
-        Muestra la sinopsis y detalles de una película recomendada.
+    # Método para mostrar una película recomendada
+    """
+    Muestra la sinopsis y detalles de una película recomendada.
 
-        :param title: Título de la película recomendada.
-        """
+    Parámetros:
+        - title (str): Título de la película recomendada.
+
+    Excepciones manejadas:
+        - Exception: Cualquier error al mostrar la película recomendada.
+    """
+    def mostrar_pelicula_recomendada(self, title):
         try:
             detalles = self.gestor_peliculas.obtener_detalles_pelicula(title)
             self.mostrar_informacion_pelicula(detalles)
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al mostrar la película recomendada: {str(e)}")
 
+    # Método para volver a la ventana principal
+    """
+    Regresa a la ventana principal.
+
+    Excepciones manejadas:
+        - Exception: Cualquier error durante la navegación.
+    """
     def volver(self):
-        """
-        Regresa a la ventana principal.
-        """
         try:
             self.gestor_ventanas.mostrar_principal()
         except Exception as e:

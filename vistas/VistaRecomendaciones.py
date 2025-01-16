@@ -4,10 +4,24 @@ import pandas as pd
 from PyQt5.QtCore import Qt
 
 class VistaRecomendaciones(QMainWindow):
+    """
+    Clase que representa la ventana de Recomendaciones personalizadas basada en las votaciones del usuario.
+    """
+
+    # Constructor de la clase
+    """
+    Inicializa la ventana de Recomendaciones, configura la interfaz gráfica
+    y conecta los eventos necesarios para generar recomendaciones.
+
+    Parámetros:
+        - gestor_ventanas: Instancia del gestor de ventanas para manejar la navegación.
+        - gestor_peliculas: Instancia del gestor de películas para manejar los datos.
+        - username: Nombre de usuario del cliente actual.
+
+    Excepciones manejadas:
+        - Exception: Cualquier error durante la inicialización del gestor de películas o la interfaz.
+    """
     def __init__(self, gestor_ventanas, gestor_peliculas, username):
-        """
-        Inicializa la ventana de Recomendaciones.
-        """
         super().__init__()
         self.setWindowTitle("Recomendaciones Según las Votaciones")
         self.resize(1200, 800)
@@ -43,11 +57,11 @@ class VistaRecomendaciones(QMainWindow):
         self.button_vista_principal = QPushButton("Vista Principal")
         self.button_vista_principal.clicked.connect(self.mostrar_vista_principal)
         self.menu_layout.addWidget(self.button_vista_principal)
-        
+
         self.button_mostrar_votaciones = QPushButton("Votaciones")
         self.button_mostrar_votaciones.clicked.connect(self.mostrar_votaciones)
         self.menu_layout.addWidget(self.button_mostrar_votaciones)
-        
+
         self.button_mostrar_recomendaciones = QPushButton("Recomendaciones")
         self.button_mostrar_recomendaciones.clicked.connect(self.ir_mostrar_recomendaciones)
         self.menu_layout.addWidget(self.button_mostrar_recomendaciones)
@@ -119,36 +133,48 @@ class VistaRecomendaciones(QMainWindow):
             }
         """)
 
+    # Método para generar recomendaciones
+    """
+    Genera las recomendaciones basadas en las votaciones del usuario y las muestra en formato de cuadrícula.
+
+    Excepciones manejadas:
+        - ValueError: Si no se encuentran recomendaciones.
+        - Exception: Cualquier error durante el cálculo o visualización de las recomendaciones.
+    """
     def generar_recomendaciones(self):
-        """
-        Genera las recomendaciones basadas en las votaciones del usuario y las muestra en formato de cuadrícula.
-        """
         try:
             # Recargar usuarios_df para obtener las votaciones más recientes
             self.gestor_peliculas.usuarios_df = pd.read_csv(self.gestor_peliculas.file_path_usuarios)
-            
+
             cantidad = int(self.combo_quantity.currentText())
-            recomendaciones = self.gestor_peliculas.recomendar_peliculas_por_usuario(self.username   )
+            recomendaciones = self.gestor_peliculas.recomendar_peliculas_por_usuario(self.username)
 
             if not recomendaciones:
-                raise ValueError("No se encontraron recomendaciones para este usuario."   )
+                raise ValueError("No se encontraron recomendaciones para este usuario.")
 
             recomendaciones_ordenadas = sorted(
                 recomendaciones,
                 key=lambda x: x['similitud_ajustada'],  # Ordenar por similitud ajustada
                 reverse=True
-            )[:cantidad   ]
+            )[:cantidad]
 
             self.mostrar_recomendaciones(recomendaciones_ordenadas)
         except ValueError as e:
             QMessageBox.warning(self, "Advertencia", str(e))
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Ocurrió un error inesperado al generar recomendaciones: {str(e)}"   )
+            QMessageBox.critical(self, "Error", f"Ocurrió un error inesperado al generar recomendaciones: {str(e)}")
 
+    # Método para mostrar recomendaciones
+    """
+    Muestra las recomendaciones en formato de cuadrícula con imágenes, títulos y similitudes.
+
+    Parámetros:
+        - recomendaciones (list): Lista de diccionarios con información de las películas recomendadas.
+
+    Excepciones manejadas:
+        - Exception: Cualquier error durante la visualización de las recomendaciones.
+    """
     def mostrar_recomendaciones(self, recomendaciones):
-        """
-        Muestra las recomendaciones en formato de cuadrícula con imágenes, títulos y similitudes.
-        """
         try:
             # Limpiar la cuadrícula de recomendaciones
             while self.grid_layout.count():
@@ -206,11 +232,21 @@ class VistaRecomendaciones(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error Crítico", f"Error al mostrar recomendaciones: {str(e)}")
 
+    # Método: onFinished
+    # Maneja la finalización de una solicitud de imagen y asigna la imagen descargada a un botón correspondiente.
+    #
+    # Parámetros:
+    #     - reply (QtNetwork.QNetworkReply): Respuesta de la solicitud HTTP que contiene los datos de la imagen.
+    #
+    # Funcionalidad:
+    #     - Recupera el botón asociado a la solicitud HTTP.
+    #     - Carga los datos de la imagen desde la respuesta.
+    #     - Asigna la imagen al botón si es válida, o muestra un mensaje de error en el botón si no lo es.
+    #
+    # Excepciones manejadas:
+    #     - Exception: Cualquier error que ocurra durante el procesamiento de la imagen.
     @QtCore.pyqtSlot(QtNetwork.QNetworkReply)
     def onFinished(self, reply):
-        """
-        Maneja la finalización de la solicitud de imagen y asigna la imagen al botón correspondiente.
-        """
         try:
             button = self.active_requests.pop(reply, None)
             if button:
@@ -223,11 +259,21 @@ class VistaRecomendaciones(QMainWindow):
             reply.deleteLater()
         except Exception as e:
             QMessageBox.warning(self, "Advertencia", f"Error al cargar imagen: {str(e)}")
-
+    
+    # Método: mostrar_pelicula_recomendada
+    # Muestra la sinopsis y los detalles de una película recomendada.
+    #
+    # Parámetros:
+    #     - titulo (str): Título de la película cuya información se mostrará.
+    #
+    # Funcionalidad:
+    #     - Recupera los detalles de la película usando el gestor de películas.
+    #     - Llama a un método del gestor de ventanas para mostrar la sinopsis y los detalles.
+    #
+    # Excepciones manejadas:
+    #     - ValueError: Si no se encuentran detalles para la película seleccionada.
+    #     - Exception: Si ocurre un error inesperado durante el proceso.
     def mostrar_pelicula_recomendada(self, titulo):
-        """
-        Muestra la sinopsis y detalles de una película recomendada.
-        """
         try:
             detalles = self.gestor_peliculas.obtener_detalles_pelicula(titulo)
             if not detalles:
@@ -237,61 +283,50 @@ class VistaRecomendaciones(QMainWindow):
             QMessageBox.warning(self, "Advertencia", str(e))
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al mostrar detalles de la película: {str(e)}")
-
+    
+    # Método: mostrar_vista_principal
+    # Navega y muestra la vista principal de la aplicación.
+    #
+    # Funcionalidad:
+    #     - Utiliza el gestor de ventanas para cambiar a la vista principal.
+    #
+    # Excepciones manejadas:
+    #     - Exception: Si ocurre un error al mostrar la vista principal.
     def mostrar_vista_principal(self):
-        """
-        Muestra la vista principal.
-        """
         try:
             self.gestor_ventanas.mostrar_principal()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al mostrar la vista principal: {str(e)}")
-
+    
+    # Método: mostrar_votaciones
+    # Navega y muestra la vista de votaciones.
+    #
+    # Funcionalidad:
+    #     - Utiliza el gestor de ventanas para cambiar a la vista de votaciones.
+    #
+    # Excepciones manejadas:
+    #     - Exception: Si ocurre un error al mostrar la vista de votaciones.
     def mostrar_votaciones(self):
-        """
-        Muestra la vista de votaciones.
-        """
         try:
             self.gestor_ventanas.mostrar_votaciones()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al mostrar la vista de votaciones: {str(e)}")
-
+    
+    # Método: ir_mostrar_recomendaciones
+    # Navega y muestra la vista de recomendaciones personalizadas para el usuario actual.
+    #
+    # Funcionalidad:
+    #     - Utiliza el gestor de ventanas para mostrar la vista de recomendaciones.
+    #     - Asegura que el gestor de películas y el nombre de usuario estén correctamente inicializados.
+    #
+    # Excepciones manejadas:
+    #     - Exception: Si ocurre un error al cargar o mostrar las recomendaciones.
     def ir_mostrar_recomendaciones(self):
-        """
-        Muestra la vista de recomendaciones.
-        """
         try:
             gestor_peliculas = self.gestor_peliculas  # Asegúrate de que esto esté inicializado
             username = self.gestor_ventanas.username  # Asegúrate de que username esté definido
             self.gestor_ventanas.mostrar_recomendaciones(gestor_peliculas, username)
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al mostrar recomendaciones: {str(e)}")
-
-    def mostrar_pelicula_recomendada(self, titulo):
-        """
-        Muestra la sinopsis y detalles de una película recomendada.
-
-        :param titulo: Título de la película recomendada.
-        """
-        detalles = self.gestor_peliculas.obtener_detalles_pelicula(titulo)
-        self.gestor_ventanas.mostrar_sinopsis(detalles)
-
-    def mostrar_vista_principal(self):
-        """
-        Muestra la vista principal.
-        """
-        self.gestor_ventanas.mostrar_principal()
-
-    def mostrar_votaciones(self):
-        """
-        Muestra la vista de votaciones.
-        """
-        self.gestor_ventanas.mostrar_votaciones()
-
-    def ir_mostrar_recomendaciones(self):
-        """
-        Muestra la vista de recomendaciones.
-        """
-        gestor_peliculas = self.gestor_peliculas  # Asegúrate de que esto esté inicializado
-        username = self.gestor_ventanas.username  # Asegúrate de que username esté definido
-        self.gestor_ventanas.mostrar_recomendaciones(gestor_peliculas, username)
+    
+       

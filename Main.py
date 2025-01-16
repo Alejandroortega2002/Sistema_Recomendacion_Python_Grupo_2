@@ -4,6 +4,10 @@ from gestores.GestorVentanas import GestorVentanas
 def main():
     """
     Punto de entrada principal para la aplicación.
+    Inicializa la aplicación, configura el gestor de ventanas y maneja errores críticos.
+
+    Excepciones manejadas:
+        - Exception: Cualquier error inesperado durante el arranque de la aplicación.
     """
     try:
         app = QApplication([])

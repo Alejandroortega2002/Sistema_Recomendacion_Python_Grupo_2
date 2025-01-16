@@ -3,10 +3,23 @@ from PyQt5.QtCore import Qt
 from gestores.GestorUsuarios import GestorUsuarios
 
 class VistaLogin(QMainWindow):
+    """
+    Clase que representa la ventana de inicio de sesión.
+    Permite a los usuarios iniciar sesión o navegar al registro.
+    """
+
+    # Constructor de la clase
+    """
+    Inicializa la ventana de inicio de sesión, configura la interfaz gráfica
+    y conecta los eventos de los botones.
+
+    Parámetros:
+        - gestor_ventanas: Instancia del gestor de ventanas para manejar la navegación.
+
+    Excepciones manejadas:
+        - Exception: Cualquier error durante la inicialización del gestor de usuarios.
+    """
     def __init__(self, gestor_ventanas):
-        """
-        Inicializa la ventana de inicio de sesión.
-        """
         super().__init__()
         self.setWindowTitle("Iniciar Sesión")
         self.resize(1200, 800)
@@ -27,7 +40,7 @@ class VistaLogin(QMainWindow):
         self.layout = QVBoxLayout(self.central_widget)
         self.layout.setAlignment(Qt.AlignCenter)  # Centrar todo el layout
 
-        # Título
+        # Título de la ventana
         self.label = QLabel("Inicio de Sesión")
         self.label.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(self.label)
@@ -85,10 +98,15 @@ class VistaLogin(QMainWindow):
             }
         """)
 
+    # Método para manejar el inicio de sesión
+    """
+    Maneja la lógica de inicio de sesión, validando las credenciales del usuario
+    y redirigiendo a la ventana principal en caso de éxito.
+
+    Excepciones manejadas:
+        - Exception: Cualquier error durante el proceso de inicio de sesión.
+    """
     def iniciar_sesion(self):
-        """
-        Maneja la lógica de inicio de sesión.
-        """
         try:
             username = self.username_edit.text().strip()
             password = self.password_edit.text().strip()
@@ -98,6 +116,7 @@ class VistaLogin(QMainWindow):
                 QMessageBox.warning(self, "Error", "Por favor, completa todos los campos.")
                 return
 
+            # Validar credenciales
             valido, mensaje = self.gestor_usuarios.validar_usuario(username, password)
             if valido:
                 # Obtener el ID del usuario
@@ -115,10 +134,14 @@ class VistaLogin(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al iniciar sesión: {e}")
 
+    # Método para navegar a la ventana de registro
+    """
+    Navega a la ventana de registro.
+
+    Excepciones manejadas:
+        - Exception: Cualquier error durante la navegación.
+    """
     def ir_a_registro(self):
-        """
-        Navega a la ventana de registro.
-        """
         try:
             self.gestor_ventanas.mostrar_registro()
         except Exception as e:

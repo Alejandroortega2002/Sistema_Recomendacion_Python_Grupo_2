@@ -12,12 +12,25 @@ from PyQt5 import QtCore, QtGui, QtNetwork
 from PyQt5.QtCore import Qt
 from gestores.GestorPeliculas import GestorPeliculas
 
-
 class VistaMisValoraciones(QMainWindow):
+    """
+    Clase que representa la ventana "Mis Valoraciones".
+    Permite a los usuarios visualizar las valoraciones que han realizado previamente.
+    """
+
+    # Constructor de la clase
+    """
+    Inicializa la ventana de "Mis Valoraciones", configura la interfaz gráfica
+    y carga las valoraciones del usuario.
+
+    Parámetros:
+        - gestor_ventanas: Instancia del gestor de ventanas para manejar la navegación.
+        - username (str): Nombre de usuario cuyas valoraciones serán cargadas.
+
+    Excepciones manejadas:
+        - Exception: Cualquier error al inicializar el gestor de películas o cargar datos.
+    """
     def __init__(self, gestor_ventanas, username):
-        """
-        Inicializa la ventana de mis valoraciones.
-        """
         super().__init__()
         self.setWindowTitle("Mis Valoraciones")
         self.resize(1200, 800)
@@ -43,7 +56,7 @@ class VistaMisValoraciones(QMainWindow):
         self.setCentralWidget(self.central_widget)
         self.layout = QVBoxLayout(self.central_widget)
 
-        # Título
+        # Título de la ventana
         self.label = QLabel("Mis Valoraciones")
         self.label.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(self.label)
@@ -60,7 +73,7 @@ class VistaMisValoraciones(QMainWindow):
         # Crear un diseño de cuadrícula para las valoraciones
         self.grid_layout = QGridLayout(self.grid_widget)
 
-        # Botón para volver
+        # Botón para volver a la ventana principal
         self.back_button = QPushButton("Volver")
         self.back_button.clicked.connect(self.volver)
         self.layout.addWidget(self.back_button)
@@ -95,10 +108,14 @@ class VistaMisValoraciones(QMainWindow):
             }
         """)
 
+    # Método para cargar las valoraciones del usuario
+    """
+    Carga las valoraciones del usuario en el diseño de cuadrícula.
+
+    Excepciones manejadas:
+        - Exception: Cualquier error al obtener o mostrar las valoraciones.
+    """
     def cargar_valoraciones(self):
-        """
-        Carga las valoraciones del usuario en el diseño de cuadrícula.
-        """
         valoraciones = self.gestor_peliculas.obtener_valoraciones_usuario(self.username)
         self.limpiar_grid_layout()
 
@@ -149,11 +166,18 @@ class VistaMisValoraciones(QMainWindow):
             except Exception as e:
                 QMessageBox.warning(self, "Advertencia", f"No se pudo cargar la valoración: {e}")
 
+    # Método para manejar la finalización de la solicitud de imagen
+    """
+    Maneja la finalización de la solicitud de imagen y asigna la imagen al botón correspondiente.
+
+    Parámetros:
+        - reply (QtNetwork.QNetworkReply): Respuesta de la solicitud de imagen.
+
+    Excepciones manejadas:
+        - Exception: Cualquier error al procesar la imagen.
+    """
     @QtCore.pyqtSlot(QtNetwork.QNetworkReply)
     def onFinished(self, reply):
-        """
-        Maneja la finalización de la solicitud de imagen y asigna la imagen al botón correspondiente.
-        """
         try:
             button = self.active_requests.pop(reply, None)
             if button:
@@ -167,20 +191,25 @@ class VistaMisValoraciones(QMainWindow):
         except Exception as e:
             QMessageBox.warning(self, "Advertencia", f"Error al cargar la imagen: {e}")
 
+    # Método para limpiar el diseño de cuadrícula
+    """
+    Limpia el diseño de cuadrícula eliminando todos los widgets existentes.
+    """
     def limpiar_grid_layout(self):
-        """
-        Limpia el diseño de cuadrícula eliminando todos los widgets.
-        """
         while self.grid_layout.count():
             item = self.grid_layout.takeAt(0)
             widget = item.widget()
             if widget:
                 widget.deleteLater()
 
+    # Método para volver a la ventana principal
+    """
+    Regresa a la ventana principal.
+
+    Excepciones manejadas:
+        - Exception: Cualquier error durante la navegación.
+    """
     def volver(self):
-        """
-        Regresa a la ventana principal.
-        """
         try:
             self.gestor_ventanas.mostrar_principal()
         except Exception as e:
