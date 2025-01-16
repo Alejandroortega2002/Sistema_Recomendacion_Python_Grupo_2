@@ -1,7 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtNetwork
-from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton, QScrollArea, QGridLayout, QComboBox, QMessageBox
+from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton, QScrollArea, QGridLayout, QComboBox, QMessageBox, QHBoxLayout
 from PyQt5.QtCore import Qt
-from gestores.GestorPeliculas import GestorPeliculas
 
 class VistaRecomendaciones(QMainWindow):
     def __init__(self, gestor_ventanas, gestor_peliculas, username):
@@ -33,8 +32,22 @@ class VistaRecomendaciones(QMainWindow):
         self.layout = QVBoxLayout(self.central_widget)
 
         # Crear el menú de navegación
-        self.menu_layout = QVBoxLayout()
+        self.menu_layout = QHBoxLayout()
         self.layout.addLayout(self.menu_layout)
+
+        # Añadir botones al menú de navegación
+        self.button_vista_principal = QPushButton("Vista Principal")
+        self.button_vista_principal.clicked.connect(self.mostrar_vista_principal)
+        self.menu_layout.addWidget(self.button_vista_principal)
+        
+        self.button_mostrar_votaciones = QPushButton("Votaciones")
+        self.button_mostrar_votaciones.clicked.connect(self.mostrar_votaciones)
+        self.menu_layout.addWidget(self.button_mostrar_votaciones)  # Aquí se usa el nombre correcto
+        
+        self.button_mostrar_recomendaciones = QPushButton("Recomendaciones")
+        self.button_mostrar_recomendaciones.clicked.connect(self.ir_mostrar_recomendaciones)
+        self.menu_layout.addWidget(self.button_mostrar_recomendaciones)
+
 
         # Título de la sección
         self.label_title = QLabel("Recomendaciones Personalizadas")
@@ -209,3 +222,23 @@ class VistaRecomendaciones(QMainWindow):
         """
         detalles = self.gestor_peliculas.obtener_detalles_pelicula(titulo)
         self.gestor_ventanas.mostrar_sinopsis(detalles)
+
+    def mostrar_vista_principal(self):
+        """
+        Muestra la vista principal.
+        """
+        self.gestor_ventanas.mostrar_principal()
+
+    def mostrar_votaciones(self):
+        """
+        Muestra la vista de votaciones.
+        """
+        self.gestor_ventanas.mostrar_votaciones()
+
+    def ir_mostrar_recomendaciones(self):
+        """
+        Muestra la vista de recomendaciones.
+        """
+        gestor_peliculas = self.gestor_peliculas  # Asegúrate de que esto esté inicializado
+        username = self.gestor_ventanas.username  # Asegúrate de que username esté definido
+        self.gestor_ventanas.mostrar_recomendaciones(gestor_peliculas, username)

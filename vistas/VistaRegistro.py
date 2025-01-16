@@ -2,7 +2,6 @@ from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit
 from PyQt5.QtCore import Qt
 from gestores.GestorUsuarios import GestorUsuarios
 
-
 class VistaRegistro(QMainWindow):
     def __init__(self, gestor_ventanas):
         """
@@ -22,20 +21,22 @@ class VistaRegistro(QMainWindow):
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         self.layout = QVBoxLayout(self.central_widget)
+        self.layout.setAlignment(Qt.AlignCenter)  # Centrar todo el layout
 
-          # Estilo general de la ventana y sus elementos
         self.setStyleSheet("""
             QWidget {
                 background-color: #2E86C1;  /* Fondo azul */
             }
             QLabel {
                 color: white;              /* Texto blanco */
+                text-align: center;        /* Centrar texto */
+                font-size: 32px;           /* Tamaño de fuente más grande para títulos */
             }
             QLineEdit {
                 background-color: #F0F0F0; /* Fondo gris claro */
                 border: 1px solid #DADADA;
                 border-radius: 5px;
-                padding: 15px;
+                padding: 10px;
                 font-size: 24px;           /* Fuente más grande */
             }
             QPushButton {
@@ -46,10 +47,12 @@ class VistaRegistro(QMainWindow):
                 border-radius: 5px;
             }
             QPushButton:hover {
-                background-color: #2980B9; /* Azul más oscuro al pasar el mouse */
+                background-color: #2980B9; /* Azul más oscuro al pasar el ratón */
+            }
+            QPushButton:pressed {
+                background-color: #1F618D; /* Azul aún más oscuro al hacer clic */
             }
         """)
-
         # Título
         self.label = QLabel("Registrarse")
         self.label.setAlignment(Qt.AlignCenter)

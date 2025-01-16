@@ -6,7 +6,12 @@ class GestorUsuarios:
         Inicializa el gestor de usuarios cargando los datos desde un archivo CSV.
         """
         self.file_path = 'usuarios.csv'
-        self.usuarios_df = pd.read_csv(self.file_path)
+        try:
+            self.usuarios_df = pd.read_csv(self.file_path)
+            self.usuarios_df['ID'] = pd.to_numeric(self.usuarios_df['ID'], errors='coerce').fillna(0).astype(int)
+        except FileNotFoundError:
+            # Si el archivo no existe, inicializa con columnas predeterminadas
+            self.usuarios_df = pd.DataFrame(columns=['ID', 'Nombre de usuario', 'Contraseña', 'votaciones'])
 
     def registrar_usuario(self, username, password):
         """
@@ -15,7 +20,14 @@ class GestorUsuarios:
         if username in self.usuarios_df['Nombre de usuario'].values:
             return "El usuario ya existe."
 
+        # Calcular el próximo ID disponible
+        if self.usuarios_df.empty:
+            nuevo_id = 1
+        else:
+            nuevo_id = self.usuarios_df['ID'].max() + 1
+
         nuevo_usuario = {
+            'ID': nuevo_id,  # ID numérico autoincremental
             'Nombre de usuario': username,
             'Contraseña': password,
             'votaciones': "[]"  # Sin votaciones inicialmente
@@ -29,9 +41,9 @@ class GestorUsuarios:
         """
         Valida las credenciales del usuario.
         """
-        # Recargar el archivo para asegurarse de que está actualizado
-        self.usuarios_df = pd.read_csv(self.file_path) 
-        
+        self.usuarios_df = pd.read_csv(self.file_path)
+        self.usuarios_df['ID'] = pd.to_numeric(self.usuarios_df['ID'], errors='coerce').fillna(0).astype(int)
+
         usuario = self.usuarios_df[self.usuarios_df['Nombre de usuario'] == username]
         if usuario.empty:
             return False, "El usuario no existe."

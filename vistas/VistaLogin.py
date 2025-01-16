@@ -79,7 +79,6 @@ class VistaLogin(QMainWindow):
                 background-color: #1F618D; /* Azul aún más oscuro al hacer clic */
             }
         """)
-       
 
     def iniciar_sesion(self):
         """
@@ -90,8 +89,10 @@ class VistaLogin(QMainWindow):
 
         valido, mensaje = self.gestor_usuarios.validar_usuario(username, password)
         if valido:
+            usuario = self.gestor_usuarios.usuarios_df[self.gestor_usuarios.usuarios_df['Nombre de usuario'] == username]
+            user_id = usuario.iloc[0]['ID']  # Obtener el ID del usuario
             QMessageBox.information(self, "Éxito", mensaje)
-            self.gestor_ventanas.set_username(username) 
+            self.gestor_ventanas.set_user_info(user_id, username)  # Establecer el ID y nombre
             self.gestor_ventanas.mostrar_principal()
         else:
             QMessageBox.warning(self, "Error", mensaje)

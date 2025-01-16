@@ -28,10 +28,11 @@ class GestorVentanas:
         # Instancia del GestorPeliculas
         self.gestor_peliculas = GestorPeliculas()
 
-    def set_username(self, username):
+    def set_user_info(self, user_id, username):
         """
-        Establece el nombre de usuario del usuario actual.
+        Establece el ID y el nombre de usuario del usuario actual.
         """
+        self.user_id = user_id
         self.username = username
 
     def mostrar_login(self):
