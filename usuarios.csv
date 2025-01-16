@@ -1,5 +1,5 @@
 Nombre de usuario,Contraseña,votaciones
-a,a,"[{'title': '2001: A Space Odyssey', 'rating': 5}, {'title': 'Spotlight', 'rating': 3}, {'title': 'True Grit', 'rating': 4}, {'title': '12 Angry Men', 'rating': 2}, {'title': 'It', 'rating': 3}, {'title': 'Finding Nemo', 'rating': 4}]"
+a,a,"[{'title': '2001: A Space Odyssey', 'rating': 5}, {'title': 'Avengers: Endgame', 'rating': 5}, {'title': 'Avengers: Infinity War', 'rating': 5}, {'title': ""Marvel's the Avengers"", 'rating': 5}, {'title': 'The Simpsons Movie', 'rating': 5}, {'title': 'Long Way North', 'rating': 5}, {'title': 'My Life as a Zucchini', 'rating': 5}, {'title': 'Dunkirk', 'rating': 5}, {'title': 'Step Into Liquid', 'rating': 5}, {'title': 'The Sandlot', 'rating': 5}, {'title': 'Iris', 'rating': 5}, {'title': 'The Five Obstructions', 'rating': 5}, {'title': 'Deliver Us From Evil', 'rating': 5}, {'title': 'I Am Not Your Negro', 'rating': 5}]"
 Pedro,2002,
 Miguel,1234,"[{'title': 'Avengers: Endgame', 'rating': 5}, {'title': 'Black Panter', 'rating': 5}, {'title': 'Titanic', 'rating': 5}, {'title': 'The Birds', 'rating': 5}, {'title': 'The Wind Rises', 'rating': 3}, {'title': 'Edge of Tomorrow', 'rating': 3}, {'title': 'Go Tigers!', 'rating': 3}, {'title': 'Paddington', 'rating': 4}]"
 aaa,aaa,[]

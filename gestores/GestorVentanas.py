@@ -84,6 +84,7 @@ class GestorVentanas:
             self.vista_sinopsis = VistaSinopsis(self, self.gestor_peliculas)
         self.vista_sinopsis.mostrar_informacion_pelicula(detalles_pelicula)
         self._cambiar_ventana(self.vista_sinopsis)
+        
     def mostrar_recomendaciones(self, gestor_peliculas, username):
         """
         Muestra la ventana de recomendaciones.
@@ -92,17 +93,27 @@ class GestorVentanas:
             self.vista_recomendaciones = VistaRecomendaciones(self, gestor_peliculas, username)
         self._cambiar_ventana(self.vista_recomendaciones)
 
+
     def _cambiar_ventana(self, nueva_ventana):
-        """
-        Cierra la ventana actual y abre una nueva.
-
-        :param nueva_ventana: Instancia de la nueva ventana a mostrar.
-        """
-        for ventana in [self.vista_login, self.vista_principal, self.vista_registro, self.vista_sinopsis,self.vista_recomendaciones]:
-            if ventana and ventana.isVisible():
-                ventana.hide()
-        nueva_ventana.show()
-
+         """
+         Cierra la ventana actual y abre una nueva.
+     
+         :param nueva_ventana: Instancia de la nueva ventana a mostrar.
+         """
+         # Cierra todas las ventanas visibles
+         for ventana in [
+             self.vista_login, 
+             self.vista_principal, 
+             self.vista_registro, 
+             self.vista_sinopsis, 
+             self.vista_recomendaciones, 
+             self.vista_votaciones, 
+             self.vista_mis_valoraciones
+         ]:
+             if ventana and ventana.isVisible():
+                 ventana.close()  # Cierra la ventana completamente
+         nueva_ventana.show()  # Muestra la nueva ventana
+     
     def ejecutar(self):
         """
         Ejecuta la aplicación mostrando inicialmente la ventana de login.

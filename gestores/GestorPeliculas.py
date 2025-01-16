@@ -59,14 +59,36 @@ class GestorPeliculas:
         # Calcular la similitud de coseno entre las películas
         self.cosine_sim_recomendaciones = cosine_similarity(tfidf_matrix, tfidf_matrix)
 
-    def buscar_peliculas(self, nombre_pelicula):
+    def obtener_peliculas(self):
+        return self.peliculas_df[['title', 'poster_image_y']].to_dict(orient='records')
+
+
+    def buscar_peliculas(self, nombres_peliculas):
+        """
+        Busca películas cuyos títulos estén en la lista proporcionada.
+        """
+        resultado = self.peliculas_df[self.peliculas_df['title'].isin(nombres_peliculas)]
+        if resultado.empty:
+            return []
+        return resultado[['title', 'poster_image_y']].to_dict(orient='records')
+    
+    def buscar_peliculas2(self, nombre_pelicula):
         """
         Busca películas cuyo título contenga el texto proporcionado.
         """
+        if not nombre_pelicula:
+            return []
+    
+        # Filtrar películas cuyo título contenga el texto, ignorando mayúsculas/minúsculas
         resultado = self.peliculas_df[self.peliculas_df['title'].str.contains(nombre_pelicula, case=False, na=False)]
+        
         if resultado.empty:
             return []
-        return resultado[['title', 'year', 'synopsis']].to_dict(orient='records')
+    
+        # Retornar solo las columnas necesarias
+        return resultado[['title', 'poster_image_y']].to_dict(orient='records')
+    
+
 
     def peliculas_al_azar(self, cantidad=12):
         """
@@ -107,7 +129,7 @@ class GestorPeliculas:
     def recomendar_peliculas_por_usuario(self, username):
         """
         Recomienda películas basadas en las valoraciones de un usuario específico.
-        Incluye las similitudes del coseno para cada recomendación.
+        Incluye las similitudes del coseno para cada recomendación y pondera según la valoración del usuario.
         """
         if username not in self.usuarios_df["Nombre de usuario"].values:
             raise ValueError(f"El usuario '{username}' no se encuentra en el sistema.")
@@ -119,14 +141,23 @@ class GestorPeliculas:
         if not pd.isna(usuario_row["votaciones"]):
             votaciones_usuario = ast.literal_eval(usuario_row["votaciones"])
 
-        # Obtener títulos de las películas votadas por el usuario
-        peliculas_votadas = [v['title'] for v in votaciones_usuario]
+        # Filtrar solo las películas con valoraciones altas (por ejemplo, >= 4)
+        peliculas_votadas = [
+            {'title': v['title'], 'rating': v['rating']}
+            for v in votaciones_usuario if v['rating'] >= 4
+        ]
+
+        if not peliculas_votadas:
+            raise ValueError("El usuario no tiene películas con valoraciones altas.")
 
         # Crear una lista para almacenar las películas recomendadas con sus similitudes
         recomendaciones = []
 
         # Recomendamos películas basadas en la similitud con las películas votadas
-        for pelicula_votada in peliculas_votadas:
+        for pelicula in peliculas_votadas:
+            pelicula_votada = pelicula['title']
+            rating = pelicula['rating']  # Usar el rating como factor de ponderación
+
             # Verificar si la película existe en el DataFrame
             indices = self.peliculas_df.index[self.peliculas_df['title'] == pelicula_votada]
 
@@ -146,8 +177,11 @@ class GestorPeliculas:
             # Obtener los índices y valores de similitud de las películas más similares
             for sim_idx, sim_score in sim_scores[1:]:  # Excluir la película actual
                 titulo_pelicula = self.peliculas_df.iloc[sim_idx]['title']
-                if titulo_pelicula not in peliculas_votadas:
-                    recomendaciones.append({'titulo': titulo_pelicula, 'similitud': sim_score})
+                if titulo_pelicula not in [v['title'] for v in votaciones_usuario]:
+                    recomendaciones.append({
+                        'titulo': titulo_pelicula,
+                        'similitud': sim_score * (rating / 5)  # Ponderar por la valoración del usuario
+                    })
 
         # Eliminar duplicados manteniendo el mayor valor de similitud
         recomendaciones_unicas = {}

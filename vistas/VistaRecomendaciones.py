@@ -1,6 +1,5 @@
-from PyQt5.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QLabel, QComboBox, QPushButton, QListWidget, QMessageBox, QHBoxLayout
-)
+from PyQt5 import QtCore, QtGui, QtNetwork
+from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton, QScrollArea, QGridLayout, QComboBox, QMessageBox
 from PyQt5.QtCore import Qt
 from gestores.GestorPeliculas import GestorPeliculas
 
@@ -25,13 +24,16 @@ class VistaRecomendaciones(QMainWindow):
         # Asegurarse de que las similitudes estén calculadas
         self.gestor_peliculas._calcular_similitudes_recomendaciones()
 
+        # Inicializar active_requests para manejar imágenes
+        self.active_requests = {}
+
         # Configuración de la interfaz gráfica
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         self.layout = QVBoxLayout(self.central_widget)
 
         # Crear el menú de navegación
-        self.menu_layout = QHBoxLayout()
+        self.menu_layout = QVBoxLayout()
         self.layout.addLayout(self.menu_layout)
 
         # Título de la sección
@@ -53,16 +55,19 @@ class VistaRecomendaciones(QMainWindow):
         self.button_recommend.clicked.connect(self.generar_recomendaciones)
         self.layout.addWidget(self.button_recommend)
 
-        # Lista para mostrar las recomendaciones
-        self.recommendations_list = QListWidget()
-        self.layout.addWidget(self.recommendations_list)
+        # Área de desplazamiento para las recomendaciones
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidgetResizable(True)
+        self.layout.addWidget(self.scroll_area)
 
-        # Botón para regresar a la vista principal
-        self.button_back = QPushButton("Volver a la Vista Principal")
-        self.button_back.clicked.connect(self.volver_vista_principal)
-        self.layout.addWidget(self.button_back)
+        # Widget de contenido para las recomendaciones
+        self.recommendations_content = QWidget()
+        self.scroll_area.setWidget(self.recommendations_content)
 
-        # Aplicar el estilo CSS para mantener la consistencia
+        # Diseño de cuadrícula para las recomendaciones
+        self.grid_layout = QGridLayout(self.recommendations_content)
+
+        # Aplicar el estilo CSS
         self.setStyleSheet("""
             QWidget {
                 background-color: #2E86C1;  /* Fondo azul */
@@ -93,17 +98,14 @@ class VistaRecomendaciones(QMainWindow):
             QPushButton:pressed {
                 background-color: #1F618D; /* Azul aún más oscuro al hacer clic */
             }
-            QListWidget {
-                background-color: #F0F0F0; /* Fondo gris claro */
-                border: 1px solid #DADADA;
-                border-radius: 5px;
-                font-size: 18px;
+            QScrollArea {
+                background-color: #F0F0F0;
             }
         """)
 
     def generar_recomendaciones(self):
         """
-        Genera las recomendaciones basadas en las votaciones del usuario y las muestra en la lista.
+        Genera las recomendaciones basadas en las votaciones del usuario y las muestra en formato de cuadrícula.
         """
         try:
             cantidad = int(self.combo_quantity.currentText())
@@ -119,22 +121,91 @@ class VistaRecomendaciones(QMainWindow):
             # Limitar el número de recomendaciones según la selección
             recomendaciones_ordenadas = recomendaciones_ordenadas[:cantidad]
 
-            # Mostrar las recomendaciones con su similitud
-            self.recommendations_list.clear()
-            if recomendaciones_ordenadas:
-                for pelicula in recomendaciones_ordenadas:
-                    self.recommendations_list.addItem(
-                        f"{pelicula['titulo']} - Similitud: {pelicula['similitud']:.2f}"
-                    )
-            else:
-                self.recommendations_list.addItem("No se encontraron recomendaciones.")
+            # Mostrar las recomendaciones
+            self.mostrar_recomendaciones(recomendaciones_ordenadas)
+
         except ValueError as e:
             QMessageBox.critical(self, "Error", str(e))
         except Exception as e:
             QMessageBox.critical(self, "Error inesperado", f"Ocurrió un error: {str(e)}")
 
-    def volver_vista_principal(self):
+    def mostrar_recomendaciones(self, recomendaciones):
         """
-        Regresa a la vista principal.
+        Muestra las recomendaciones en formato de cuadrícula con imágenes, títulos y similitudes.
         """
-        self.gestor_ventanas.mostrar_principal()
+        # Limpiar la cuadrícula de recomendaciones
+        while self.grid_layout.count():
+            item = self.grid_layout.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
+
+        if not recomendaciones:
+            no_recommendation_label = QLabel("No se encontraron recomendaciones.")
+            no_recommendation_label.setStyleSheet("font-size: 18px; color: white;")
+            self.grid_layout.addWidget(no_recommendation_label, 0, 0, 1, 4)
+            return
+
+        # Mostrar las recomendaciones
+        row, col = 0, 0
+        for rec in recomendaciones:
+            titulo = rec["titulo"]
+            similitud = rec["similitud"]
+            image_button = QPushButton()
+            image_button.setFixedSize(150, 225)  # Tamaño fijo para la imagen
+            image_url = self.gestor_peliculas.obtener_detalles_pelicula(titulo).get('poster_image_y', '')
+
+            if image_url and QtCore.QUrl(image_url).isValid():
+                manager = QtNetwork.QNetworkAccessManager(self)
+                request = QtNetwork.QNetworkRequest(QtCore.QUrl(image_url))
+                reply = manager.get(request)
+
+                # Asociar el reply al botón
+                self.active_requests[reply] = image_button
+
+                # Conectar el manejador general
+                manager.finished.connect(self.onFinished)
+            else:
+                image_button.setText("Sin Imagen")
+
+            image_button.clicked.connect(lambda _, p=titulo: self.mostrar_pelicula_recomendada(p))
+
+            # Crear el widget para el título y la similitud
+            title_label = QLabel(f"{titulo}\nSimilitud: {similitud:.2f}")
+            title_label.setAlignment(Qt.AlignCenter)
+            title_label.setWordWrap(True)
+            title_label.setFixedWidth(150)
+            title_label.setStyleSheet("font-size: 16px; color: white;")
+
+            # Añadir los widgets a la cuadrícula
+            self.grid_layout.addWidget(image_button, row, col)
+            self.grid_layout.addWidget(title_label, row + 1, col)
+
+            col += 1
+            if col == 4:  # Máximo 4 columnas
+                col = 0
+                row += 2
+
+    @QtCore.pyqtSlot(QtNetwork.QNetworkReply)
+    def onFinished(self, reply):
+        """
+        Maneja la finalización de la solicitud de imagen y asigna la imagen al botón correspondiente.
+        """
+        button = self.active_requests.pop(reply, None)
+        if button:
+            image = QtGui.QImage.fromData(reply.readAll())
+            if not image.isNull():
+                button.setIcon(QtGui.QIcon(QtGui.QPixmap.fromImage(image).scaled(150, 225, QtCore.Qt.KeepAspectRatio)))
+                button.setIconSize(button.size())
+            else:
+                button.setText("Imagen no disponible")
+        reply.deleteLater()
+
+    def mostrar_pelicula_recomendada(self, titulo):
+        """
+        Muestra la sinopsis y detalles de una película recomendada.
+
+        :param titulo: Título de la película recomendada.
+        """
+        detalles = self.gestor_peliculas.obtener_detalles_pelicula(titulo)
+        self.gestor_ventanas.mostrar_sinopsis(detalles)

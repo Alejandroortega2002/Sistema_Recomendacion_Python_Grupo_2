@@ -1,13 +1,21 @@
-from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton, QListWidget, QMessageBox, QMenuBar, QAction,QHBoxLayout
-from PyQt5.QtCore import Qt
+from PyQt5 import QtCore, QtGui, QtNetwork
+from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton, QScrollArea, QGridLayout, QHBoxLayout, QLineEdit, QMessageBox
+from PyQt5.QtCore import Qt  # Importa Qt para usar AlignCenter y otros atributos
 from gestores.GestorPeliculas import GestorPeliculas
 
 class VistaPrincipal(QMainWindow):
     def __init__(self, gestor_ventanas):
+        """
+        Inicializa la ventana principal de la aplicación.
+        """
         super().__init__()
         self.setWindowTitle("Buscador de Películas")
         self.resize(1200, 800)
+
+        # Referencia al gestor de ventanas
         self.gestor_ventanas = gestor_ventanas
+
+        # Referencia al gestor de películas
         self.gestor_peliculas = GestorPeliculas()
 
         # Configuración de la interfaz gráfica
@@ -20,39 +28,50 @@ class VistaPrincipal(QMainWindow):
         self.layout.addLayout(self.menu_layout)
 
         # Añadir botones al menú de navegación
+                # Añadir botones al menú de navegación
         self.button_vista_principal = QPushButton("Vista Principal")
         self.button_vista_principal.clicked.connect(self.mostrar_vista_principal)
         self.menu_layout.addWidget(self.button_vista_principal)
+        
+        self.button_mostrar_votaciones = QPushButton("Votaciones")
+        self.button_mostrar_votaciones.clicked.connect(self.mostrar_votaciones)
+        self.menu_layout.addWidget(self.button_mostrar_votaciones)  # Aquí se usa el nombre correcto
+        
+        self.button_mostrar_recomendaciones = QPushButton("Recomendaciones")
+        self.button_mostrar_recomendaciones.clicked.connect(self.mostrar_recomendaciones)
+        self.menu_layout.addWidget(self.button_mostrar_recomendaciones)
 
-        self.button_votaciones = QPushButton("Votaciones")
-        self.button_votaciones.clicked.connect(self.mostrar_votaciones)
-        self.menu_layout.addWidget(self.button_votaciones)
 
-        # Cambia "Valoraciones" a "Recomendaciones"
-        self.button_recomendaciones = QPushButton("Recomendaciones")
-        self.button_recomendaciones.clicked.connect(
-        self.mostrar_recomendaciones)  # Método para abrir las recomendaciones
-        self.menu_layout.addWidget(self.button_recomendaciones)
- 
         # Título
         self.label = QLabel("Buscador de Películas")
         self.label.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(self.label)
 
-        # Campo de búsqueda
+       # Campo de búsqueda
+        search_layout = QHBoxLayout()
+        self.layout.addLayout(search_layout)
+
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Buscar película...")
-        self.search_input.textChanged.connect(self.buscar_peliculas)  # Conectar la señal textChanged
-        self.layout.addWidget(self.search_input)
+        search_layout.addWidget(self.search_input)
 
-        # Lista de resultados
-        self.results_list = QListWidget()
-        self.results_list.itemClicked.connect(self.actualizar_pelicula_seleccionada)
-        self.layout.addWidget(self.results_list)
-
-        # Mostrar películas al azar al cargar la página
-        self.mostrar_peliculas_al_azar()
+        # Botón de búsqueda
+        self.button_buscar = QPushButton("Buscar")
+        self.button_buscar.clicked.connect(self.buscar_peliculas)
+        search_layout.addWidget(self.button_buscar)
         
+        # Crear un área de desplazamiento
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidgetResizable(True)
+        self.layout.addWidget(self.scroll_area)
+
+        # Crear un widget de contenido para el área de desplazamiento
+        self.scroll_content = QWidget()
+        self.scroll_area.setWidget(self.scroll_content)
+
+        # Crear un diseño de cuadrícula para el contenido
+        self.grid_layout = QGridLayout(self.scroll_content)
+
         # Campo de texto para la película seleccionada
         self.selected_movie_edit = QLineEdit()
         self.selected_movie_edit.setPlaceholderText("Película seleccionada")
@@ -63,7 +82,6 @@ class VistaPrincipal(QMainWindow):
         self.synopsis_button = QPushButton("Ver Sinopsis / Recomendación")
         self.synopsis_button.clicked.connect(self.ver_sinopsis)
         self.layout.addWidget(self.synopsis_button)
-
 
         # Aplicar el estilo CSS
         self.setStyleSheet("""
@@ -96,41 +114,17 @@ class VistaPrincipal(QMainWindow):
             QPushButton:pressed {
                 background-color: #1F618D; /* Azul aún más oscuro al hacer clic */
             }
-            QListWidget {
-                background-color: #F0F0F0; /* Fondo gris claro */
-                border: 1px solid #DADADA;
-                border-radius: 5px;
-                font-size: 24px;           /* Fuente más grande */
-            }
         """)
 
-    def buscar_peliculas(self):
-        """
-        Realiza la búsqueda de películas y muestra los resultados.
-        """
-        nombre = self.search_input.text()
-        resultados = self.gestor_peliculas.buscar_peliculas(nombre)
-        self.results_list.clear()
-        if resultados:
-            for pelicula in resultados:
-                self.results_list.addItem(f"{pelicula['title']} ({pelicula['year']})")
-        else:
-            self.results_list.addItem("No se encontraron resultados.")
-
-    def actualizar_pelicula_seleccionada(self, item):
-        """
-        Actualiza el campo de texto con la película seleccionada.
-        """
-        nombre_pelicula = item.text().split(' (')[0]
-        self.selected_movie_edit.setText(nombre_pelicula)
+        # Mostrar películas al azar al cargar la página
+        self.mostrar_peliculas_al_azar()
 
     def ver_sinopsis(self):
         """
         Abre la ventana de sinopsis para la película seleccionada.
         """
-        item = self.results_list.currentItem()
-        if item:
-            nombre_pelicula = item.text().split(' (')[0]
+        nombre_pelicula = self.selected_movie_edit.text()
+        if nombre_pelicula:
             detalles = self.gestor_peliculas.obtener_detalles_pelicula(nombre_pelicula)
             if detalles:
                 self.gestor_ventanas.mostrar_sinopsis(detalles)
@@ -138,18 +132,134 @@ class VistaPrincipal(QMainWindow):
                 QMessageBox.warning(self, "Error", "No se encontraron detalles para la película seleccionada.")
         else:
             QMessageBox.warning(self, "Error", "Por favor, selecciona una película de la lista.")
+
+    def cargar_peliculas(self, peliculas):
+        """
+        Carga las películas y las muestra en la cuadrícula.
+        """
+        self.limpiar_grid_layout()
+        if not peliculas:
+            QMessageBox.warning(self, "Advertencia", "No hay películas disponibles para mostrar.")
+            return
     
-     
+        # Crear un diccionario para asociar solicitudes con botones
+        self.active_requests = {}
+    
+        row = 0
+        col = 0
+        for pelicula in peliculas:
+            # Crear un botón para la imagen
+            image_button = QPushButton()
+            image_button.setFixedSize(150, 225)  # Tamaño fijo para la imagen
+            image_url = pelicula.get('poster_image_y', '')
+    
+            # Validar que la URL sea válida
+            if image_url and QtCore.QUrl(image_url).isValid():
+                manager = QtNetwork.QNetworkAccessManager(self)
+    
+                # Asociar el botón con la solicitud
+                request = QtNetwork.QNetworkRequest(QtCore.QUrl(image_url))
+                reply = manager.get(request)
+                self.active_requests[reply] = image_button
+    
+                # Conectar la señal de finalización
+                manager.finished.connect(self.onFinished)
+            else:
+                image_button.setText("Imagen no disponible")
+    
+            # Conectar el evento de clic al título de la película
+            image_button.clicked.connect(lambda _, p=pelicula['title']: self.seleccionar_pelicula(p))
+    
+            # Crear un widget para el título
+            title_label = QLabel(pelicula['title'])
+            title_label.setAlignment(QtCore.Qt.AlignCenter)
+            title_label.setWordWrap(True)  # Habilitar el ajuste de texto
+            title_label.setFixedWidth(150)  # Igualar el ancho al de la imagen
+    
+            # Añadir los widgets a la cuadrícula
+            self.grid_layout.addWidget(image_button, row, col)
+            self.grid_layout.addWidget(title_label, row + 1, col)
+            col += 1
+            if col == 4:
+                col = 0
+                row += 2
+
+
+
+    @QtCore.pyqtSlot(QtNetwork.QNetworkReply)
+    def onFinished(self, reply):
+        """
+        Maneja la finalización de la solicitud de imagen.
+        """
+        # Obtener el botón asociado a esta solicitud
+        button = self.active_requests.pop(reply, None)
+
+        if button is not None:
+            image = QtGui.QImage.fromData(reply.readAll())
+            if not image.isNull():
+                button.setIcon(QtGui.QIcon(QtGui.QPixmap.fromImage(image).scaled(150, 225, QtCore.Qt.KeepAspectRatio)))
+                button.setIconSize(button.size())
+            else:
+                button.setText("Imagen no disponible")
+
+        reply.deleteLater()
+
+
+
+    def seleccionar_pelicula(self, titulo):
+        """
+        Actualiza el campo de texto con la película seleccionada al hacer clic en una imagen.
+        """
+        self.selected_movie_edit.setText(titulo)
+
+    def buscar_peliculas(self):
+        """
+        Realiza la búsqueda de películas basándose en el texto ingresado en el campo de búsqueda
+        y muestra los resultados en el área de resultados.
+        """
+        nombre = self.search_input.text().strip()  # Eliminar espacios en blanco al inicio y al final
+        if not nombre:
+            # Si no hay texto, limpia la cuadrícula y muestra todas las películas
+            self.mostrar_peliculas_al_azar()
+            return
+    
+        try:
+            # Realizar la búsqueda en el gestor
+            resultados = self.gestor_peliculas.buscar_peliculas2(nombre)
+            
+            # Limpia la cuadrícula antes de mostrar los nuevos resultados
+            self.limpiar_grid_layout()
+    
+            if resultados:
+                # Cargar los resultados en la cuadrícula
+                self.cargar_peliculas(resultados)
+            else:
+                QMessageBox.information(self, "Sin resultados", f"No se encontraron películas que coincidan con: '{nombre}'")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Ocurrió un error al buscar películas: {str(e)}")
+    
+
     def mostrar_peliculas_al_azar(self):
         """
-        Muestra 12 películas al azar en la lista de resultados.
+        Muestra 12 películas al azar en la cuadrícula.
         """
-        peliculas_al_azar = self.gestor_peliculas.peliculas_al_azar()
-        self.results_list.clear()
-        for pelicula in peliculas_al_azar:
-            self.results_list.addItem(pelicula)
+        try:
+            peliculas_al_azar = self.gestor_peliculas.peliculas_al_azar()
+            peliculas = self.gestor_peliculas.buscar_peliculas(peliculas_al_azar)
+            self.cargar_peliculas(peliculas)
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Ocurrió un error al cargar películas al azar: {str(e)}")
 
-        
+    def limpiar_grid_layout(self):
+        """
+        Elimina todos los widgets del grid layout.
+        """
+        while self.grid_layout.count():
+            item = self.grid_layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+
     def mostrar_vista_principal(self):
         """
         Muestra la vista principal.
@@ -162,14 +272,12 @@ class VistaPrincipal(QMainWindow):
         """
         self.gestor_ventanas.mostrar_votaciones()
 
-    def mostrar_valoraciones(self):
-        """
-        Muestra la vista de valoraciones.
-        """
-        self.gestor_ventanas.mostrar_valoraciones()
-
     def mostrar_recomendaciones(self):
         """
-        Muestra la ventana de recomendaciones.
+        Muestra la vista de recomendaciones.
         """
-        self.gestor_ventanas.mostrar_recomendaciones(self.gestor_peliculas, self.gestor_ventanas.username)
+        gestor_peliculas = self.gestor_peliculas  # Asegúrate de que esto esté inicializado
+        username = self.gestor_ventanas.username  # Asegúrate de que username esté definido
+        self.gestor_ventanas.mostrar_recomendaciones(gestor_peliculas, username)
+
+
