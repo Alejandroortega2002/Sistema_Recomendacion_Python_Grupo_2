@@ -1,4 +1,5 @@
 ID,Nombre de usuario,Contraseña,votaciones
 1,Julito,123,[]
-2,a,a,[]
+2,a,a,"[{'title': 'Fantasia', 'rating': 5}, {'title': 'The Town', 'rating': 5}, {'title': '3:10 to Yuma', 'rating': 5}, {'title': 'Jonah Hex', 'rating': 5}, {'title': 'The Jungle Book', 'rating': 4}, {'title': 'Ran', 'rating': 4}, {'title': 'Spider-Man: Far From Home', 'rating': 5}, {'title': 'The Act of Killing', 'rating': 3}, {'title': 'The Day the Earth Stood Still', 'rating': 4}]"
 3,b,b,"[{'title': 'The Passion of Joan of Arc', 'rating': 5}, {'title': 'Avengers: Endgame', 'rating': 5}, {'title': 'Avengers: Infinity War', 'rating': 5}, {'title': ""Marvel's the Avengers"", 'rating': 5}]"
+4,Pedrux,pologoco,"[{'title': 'Jiro Dreams of Sushi', 'rating': 5}, {'title': 'Avengers: Endgame', 'rating': 5}, {'title': 'Avengers: Infinity War', 'rating': 5}, {'title': ""Marvel's the Avengers"", 'rating': 5}]"

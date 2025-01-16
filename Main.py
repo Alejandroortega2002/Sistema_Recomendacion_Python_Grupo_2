@@ -1,20 +1,25 @@
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QMessageBox
 from gestores.GestorVentanas import GestorVentanas
 
 def main():
     """
     Punto de entrada principal para la aplicación.
     """
-    app = QApplication([])
+    try:
+        app = QApplication([])
 
-    # Crear instancia del gestor de ventanas
-    gestor = GestorVentanas()
+        # Crear instancia del gestor de ventanas
+        gestor = GestorVentanas()
 
-    # Mostrar la ventana de login al inicio
-    gestor.mostrar_login()
+        # Mostrar la ventana de login al inicio
+        gestor.mostrar_login()
 
-    # Ejecutar la aplicación
-    app.exec_()
+        # Ejecutar la aplicación
+        app.exec_()
+
+    except Exception as e:
+        # Manejo de errores críticos que podrían ocurrir en el arranque de la aplicación
+        QMessageBox.critical(None, "Error Crítico", f"Ocurrió un error inesperado: {str(e)}")
 
 if __name__ == "__main__":
     main()

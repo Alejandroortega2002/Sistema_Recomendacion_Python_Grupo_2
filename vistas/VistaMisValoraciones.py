@@ -5,7 +5,8 @@ from PyQt5.QtWidgets import (
     QLabel,
     QPushButton,
     QScrollArea,
-    QGridLayout
+    QGridLayout,
+    QMessageBox
 )
 from PyQt5 import QtCore, QtGui, QtNetwork
 from PyQt5.QtCore import Qt
@@ -24,8 +25,12 @@ class VistaMisValoraciones(QMainWindow):
         # Referencia al gestor de ventanas
         self.gestor_ventanas = gestor_ventanas
 
-        # Referencia al gestor de películas
-        self.gestor_peliculas = GestorPeliculas()
+        try:
+            # Referencia al gestor de películas
+            self.gestor_peliculas = GestorPeliculas()
+        except Exception as e:
+            QMessageBox.critical(self, "Error Crítico", f"Error al cargar el gestor de películas: {e}")
+            return
 
         # Nombre de usuario
         self.username = username
@@ -61,7 +66,10 @@ class VistaMisValoraciones(QMainWindow):
         self.layout.addWidget(self.back_button)
 
         # Cargar las valoraciones del usuario
-        self.cargar_valoraciones()
+        try:
+            self.cargar_valoraciones()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error al cargar las valoraciones: {e}")
 
         # Aplicar el estilo CSS
         self.setStyleSheet("""
@@ -77,7 +85,7 @@ class VistaMisValoraciones(QMainWindow):
             QPushButton {
                 background-color: #3498DB; /* Azul para botones */
                 color: white;
-                font-size: 24px;           /* Fuente más grande */
+                font-size: 24px;           /* Tamaño de fuente más grande */
                 font-weight: bold;         /* Texto en negrita */
                 padding: 15px;
                 border-radius: 5px;
@@ -102,56 +110,62 @@ class VistaMisValoraciones(QMainWindow):
 
         row, col = 0, 0
         for valoracion in valoraciones:
-            titulo = valoracion['title']
-            rating = valoracion['rating']
+            try:
+                titulo = valoracion.get('title', 'Sin título')
+                rating = valoracion.get('rating', 0)
 
-            # Crear un botón para la imagen de la película
-            image_button = QPushButton()
-            image_button.setFixedSize(150, 225)
-            image_url = self.gestor_peliculas.obtener_detalles_pelicula(titulo).get('poster_image_y', '')
+                # Crear un botón para la imagen de la película
+                image_button = QPushButton()
+                image_button.setFixedSize(150, 225)
+                image_url = self.gestor_peliculas.obtener_detalles_pelicula(titulo).get('poster_image_y', '')
 
-            if image_url and QtCore.QUrl(image_url).isValid():
-                manager = QtNetwork.QNetworkAccessManager(self)
-                request = QtNetwork.QNetworkRequest(QtCore.QUrl(image_url))
-                reply = manager.get(request)
+                if image_url and QtCore.QUrl(image_url).isValid():
+                    manager = QtNetwork.QNetworkAccessManager(self)
+                    request = QtNetwork.QNetworkRequest(QtCore.QUrl(image_url))
+                    reply = manager.get(request)
 
-                # Asociar el reply al botón
-                self.active_requests[reply] = image_button
+                    # Asociar el reply al botón
+                    self.active_requests[reply] = image_button
 
-                # Conectar la señal para cargar la imagen
-                manager.finished.connect(self.onFinished)
-            else:
-                image_button.setText("Sin Imagen")
+                    # Conectar la señal para cargar la imagen
+                    manager.finished.connect(self.onFinished)
+                else:
+                    image_button.setText("Sin Imagen")
 
-            # Crear un widget para el título y la valoración
-            title_label = QLabel(f"{titulo}\nValoración: {rating}/5")
-            title_label.setAlignment(Qt.AlignCenter)
-            title_label.setWordWrap(True)
-            title_label.setFixedWidth(150)
+                # Crear un widget para el título y la valoración
+                title_label = QLabel(f"{titulo}\nValoración: {rating}/5")
+                title_label.setAlignment(Qt.AlignCenter)
+                title_label.setWordWrap(True)
+                title_label.setFixedWidth(150)
 
-            # Añadir los widgets a la cuadrícula
-            self.grid_layout.addWidget(image_button, row, col)
-            self.grid_layout.addWidget(title_label, row + 1, col)
+                # Añadir los widgets a la cuadrícula
+                self.grid_layout.addWidget(image_button, row, col)
+                self.grid_layout.addWidget(title_label, row + 1, col)
 
-            col += 1
-            if col == 4:  # Cambiar de fila cada 4 columnas
-                col = 0
-                row += 2
+                col += 1
+                if col == 4:  # Cambiar de fila cada 4 columnas
+                    col = 0
+                    row += 2
+            except Exception as e:
+                QMessageBox.warning(self, "Advertencia", f"No se pudo cargar la valoración: {e}")
 
     @QtCore.pyqtSlot(QtNetwork.QNetworkReply)
     def onFinished(self, reply):
         """
         Maneja la finalización de la solicitud de imagen y asigna la imagen al botón correspondiente.
         """
-        button = self.active_requests.pop(reply, None)
-        if button:
-            image = QtGui.QImage.fromData(reply.readAll())
-            if not image.isNull():
-                button.setIcon(QtGui.QIcon(QtGui.QPixmap.fromImage(image).scaled(150, 225, QtCore.Qt.KeepAspectRatio)))
-                button.setIconSize(button.size())
-            else:
-                button.setText("Imagen no disponible")
-        reply.deleteLater()
+        try:
+            button = self.active_requests.pop(reply, None)
+            if button:
+                image = QtGui.QImage.fromData(reply.readAll())
+                if not image.isNull():
+                    button.setIcon(QtGui.QIcon(QtGui.QPixmap.fromImage(image).scaled(150, 225, QtCore.Qt.KeepAspectRatio)))
+                    button.setIconSize(button.size())
+                else:
+                    button.setText("Imagen no disponible")
+            reply.deleteLater()
+        except Exception as e:
+            QMessageBox.warning(self, "Advertencia", f"Error al cargar la imagen: {e}")
 
     def limpiar_grid_layout(self):
         """
@@ -167,4 +181,7 @@ class VistaMisValoraciones(QMainWindow):
         """
         Regresa a la ventana principal.
         """
-        self.gestor_ventanas.mostrar_principal()
+        try:
+            self.gestor_ventanas.mostrar_principal()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"No se pudo regresar a la ventana principal: {e}")

@@ -1,5 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtNetwork
 from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLabel, QPushButton, QScrollArea, QGridLayout, QComboBox, QMessageBox, QHBoxLayout
+import pandas as pd
 from PyQt5.QtCore import Qt
 
 class VistaRecomendaciones(QMainWindow):
@@ -21,7 +22,10 @@ class VistaRecomendaciones(QMainWindow):
         self.username = username
 
         # Asegurarse de que las similitudes estén calculadas
-        self.gestor_peliculas._calcular_similitudes_recomendaciones()
+        try:
+            self.gestor_peliculas._calcular_similitudes_recomendaciones()
+        except Exception as e:
+            QMessageBox.critical(self, "Error Crítico", f"Error al calcular similitudes: {str(e)}")
 
         # Inicializar active_requests para manejar imágenes
         self.active_requests = {}
@@ -42,12 +46,11 @@ class VistaRecomendaciones(QMainWindow):
         
         self.button_mostrar_votaciones = QPushButton("Votaciones")
         self.button_mostrar_votaciones.clicked.connect(self.mostrar_votaciones)
-        self.menu_layout.addWidget(self.button_mostrar_votaciones)  # Aquí se usa el nombre correcto
+        self.menu_layout.addWidget(self.button_mostrar_votaciones)
         
         self.button_mostrar_recomendaciones = QPushButton("Recomendaciones")
         self.button_mostrar_recomendaciones.clicked.connect(self.ir_mostrar_recomendaciones)
         self.menu_layout.addWidget(self.button_mostrar_recomendaciones)
-
 
         # Título de la sección
         self.label_title = QLabel("Recomendaciones Personalizadas")
@@ -121,98 +124,148 @@ class VistaRecomendaciones(QMainWindow):
         Genera las recomendaciones basadas en las votaciones del usuario y las muestra en formato de cuadrícula.
         """
         try:
+            # Recargar usuarios_df para obtener las votaciones más recientes
+            self.gestor_peliculas.usuarios_df = pd.read_csv(self.gestor_peliculas.file_path_usuarios)
+            
             cantidad = int(self.combo_quantity.currentText())
-            recomendaciones = self.gestor_peliculas.recomendar_peliculas_por_usuario(self.username)
+            recomendaciones = self.gestor_peliculas.recomendar_peliculas_por_usuario(self.username   )
 
-            # Ordenar las recomendaciones por similitud de mayor a menor
+            if not recomendaciones:
+                raise ValueError("No se encontraron recomendaciones para este usuario."   )
+
             recomendaciones_ordenadas = sorted(
                 recomendaciones,
-                key=lambda x: x['similitud'],
+                key=lambda x: x['similitud_ajustada'],  # Ordenar por similitud ajustada
                 reverse=True
-            )
+            )[:cantidad   ]
 
-            # Limitar el número de recomendaciones según la selección
-            recomendaciones_ordenadas = recomendaciones_ordenadas[:cantidad]
-
-            # Mostrar las recomendaciones
             self.mostrar_recomendaciones(recomendaciones_ordenadas)
-
         except ValueError as e:
-            QMessageBox.critical(self, "Error", str(e))
+            QMessageBox.warning(self, "Advertencia", str(e))
         except Exception as e:
-            QMessageBox.critical(self, "Error inesperado", f"Ocurrió un error: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Ocurrió un error inesperado al generar recomendaciones: {str(e)}"   )
 
     def mostrar_recomendaciones(self, recomendaciones):
         """
         Muestra las recomendaciones en formato de cuadrícula con imágenes, títulos y similitudes.
         """
-        # Limpiar la cuadrícula de recomendaciones
-        while self.grid_layout.count():
-            item = self.grid_layout.takeAt(0)
-            widget = item.widget()
-            if widget:
-                widget.deleteLater()
+        try:
+            # Limpiar la cuadrícula de recomendaciones
+            while self.grid_layout.count():
+                item = self.grid_layout.takeAt(0)
+                widget = item.widget()
+                if widget:
+                    widget.deleteLater()
 
-        if not recomendaciones:
-            no_recommendation_label = QLabel("No se encontraron recomendaciones.")
-            no_recommendation_label.setStyleSheet("font-size: 18px; color: white;")
-            self.grid_layout.addWidget(no_recommendation_label, 0, 0, 1, 4)
-            return
+            if not recomendaciones:
+                no_recommendation_label = QLabel("No se encontraron recomendaciones.")
+                no_recommendation_label.setStyleSheet("font-size: 18px; color: white;")
+                self.grid_layout.addWidget(no_recommendation_label, 0, 0, 1, 4)
+                return
 
-        # Mostrar las recomendaciones
-        row, col = 0, 0
-        for rec in recomendaciones:
-            titulo = rec["titulo"]
-            similitud = rec["similitud"]
-            image_button = QPushButton()
-            image_button.setFixedSize(150, 225)  # Tamaño fijo para la imagen
-            image_url = self.gestor_peliculas.obtener_detalles_pelicula(titulo).get('poster_image_y', '')
+            # Mostrar las recomendaciones
+            row, col = 0, 0
+            for rec in recomendaciones:
+                try:
+                    titulo = rec["titulo"]
+                    similitud = rec["similitud"]
 
-            if image_url and QtCore.QUrl(image_url).isValid():
-                manager = QtNetwork.QNetworkAccessManager(self)
-                request = QtNetwork.QNetworkRequest(QtCore.QUrl(image_url))
-                reply = manager.get(request)
+                    # Botón para la imagen
+                    image_button = QPushButton()
+                    image_button.setFixedSize(150, 225)
+                    image_url = self.gestor_peliculas.obtener_detalles_pelicula(titulo).get('poster_image_y', '')
 
-                # Asociar el reply al botón
-                self.active_requests[reply] = image_button
+                    if image_url and QtCore.QUrl(image_url).isValid():
+                        manager = QtNetwork.QNetworkAccessManager(self)
+                        request = QtNetwork.QNetworkRequest(QtCore.QUrl(image_url))
+                        reply = manager.get(request)
+                        self.active_requests[reply] = image_button
+                        manager.finished.connect(self.onFinished)
+                    else:
+                        image_button.setText("Sin Imagen")
 
-                # Conectar el manejador general
-                manager.finished.connect(self.onFinished)
-            else:
-                image_button.setText("Sin Imagen")
+                    image_button.clicked.connect(lambda _, p=titulo: self.mostrar_pelicula_recomendada(p))
 
-            image_button.clicked.connect(lambda _, p=titulo: self.mostrar_pelicula_recomendada(p))
+                    # Título y similitud
+                    title_label = QLabel(f"{titulo}\nSimilitud: {similitud:.2f}")
+                    title_label.setAlignment(Qt.AlignCenter)
+                    title_label.setWordWrap(True)
+                    title_label.setFixedWidth(150)
+                    title_label.setStyleSheet("font-size: 16px; color: white;")
 
-            # Crear el widget para el título y la similitud
-            title_label = QLabel(f"{titulo}\nSimilitud: {similitud:.2f}")
-            title_label.setAlignment(Qt.AlignCenter)
-            title_label.setWordWrap(True)
-            title_label.setFixedWidth(150)
-            title_label.setStyleSheet("font-size: 16px; color: white;")
+                    # Añadir a la cuadrícula
+                    self.grid_layout.addWidget(image_button, row, col)
+                    self.grid_layout.addWidget(title_label, row + 1, col)
 
-            # Añadir los widgets a la cuadrícula
-            self.grid_layout.addWidget(image_button, row, col)
-            self.grid_layout.addWidget(title_label, row + 1, col)
-
-            col += 1
-            if col == 4:  # Máximo 4 columnas
-                col = 0
-                row += 2
+                    col += 1
+                    if col == 4:  # Máximo 4 columnas
+                        col = 0
+                        row += 2
+                except Exception as e:
+                    QMessageBox.warning(self, "Advertencia", f"Error al procesar recomendación: {str(e)}")
+        except Exception as e:
+            QMessageBox.critical(self, "Error Crítico", f"Error al mostrar recomendaciones: {str(e)}")
 
     @QtCore.pyqtSlot(QtNetwork.QNetworkReply)
     def onFinished(self, reply):
         """
         Maneja la finalización de la solicitud de imagen y asigna la imagen al botón correspondiente.
         """
-        button = self.active_requests.pop(reply, None)
-        if button:
-            image = QtGui.QImage.fromData(reply.readAll())
-            if not image.isNull():
-                button.setIcon(QtGui.QIcon(QtGui.QPixmap.fromImage(image).scaled(150, 225, QtCore.Qt.KeepAspectRatio)))
-                button.setIconSize(button.size())
-            else:
-                button.setText("Imagen no disponible")
-        reply.deleteLater()
+        try:
+            button = self.active_requests.pop(reply, None)
+            if button:
+                image = QtGui.QImage.fromData(reply.readAll())
+                if not image.isNull():
+                    button.setIcon(QtGui.QIcon(QtGui.QPixmap.fromImage(image).scaled(150, 225, QtCore.Qt.KeepAspectRatio)))
+                    button.setIconSize(button.size())
+                else:
+                    button.setText("Imagen no disponible")
+            reply.deleteLater()
+        except Exception as e:
+            QMessageBox.warning(self, "Advertencia", f"Error al cargar imagen: {str(e)}")
+
+    def mostrar_pelicula_recomendada(self, titulo):
+        """
+        Muestra la sinopsis y detalles de una película recomendada.
+        """
+        try:
+            detalles = self.gestor_peliculas.obtener_detalles_pelicula(titulo)
+            if not detalles:
+                raise ValueError("No se encontraron detalles para la película seleccionada.")
+            self.gestor_ventanas.mostrar_sinopsis(detalles)
+        except ValueError as e:
+            QMessageBox.warning(self, "Advertencia", str(e))
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error al mostrar detalles de la película: {str(e)}")
+
+    def mostrar_vista_principal(self):
+        """
+        Muestra la vista principal.
+        """
+        try:
+            self.gestor_ventanas.mostrar_principal()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error al mostrar la vista principal: {str(e)}")
+
+    def mostrar_votaciones(self):
+        """
+        Muestra la vista de votaciones.
+        """
+        try:
+            self.gestor_ventanas.mostrar_votaciones()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error al mostrar la vista de votaciones: {str(e)}")
+
+    def ir_mostrar_recomendaciones(self):
+        """
+        Muestra la vista de recomendaciones.
+        """
+        try:
+            gestor_peliculas = self.gestor_peliculas  # Asegúrate de que esto esté inicializado
+            username = self.gestor_ventanas.username  # Asegúrate de que username esté definido
+            self.gestor_ventanas.mostrar_recomendaciones(gestor_peliculas, username)
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error al mostrar recomendaciones: {str(e)}")
 
     def mostrar_pelicula_recomendada(self, titulo):
         """

@@ -14,8 +14,12 @@ class VistaLogin(QMainWindow):
         # Referencia al gestor de ventanas
         self.gestor_ventanas = gestor_ventanas
 
-        # Referencia al gestor de usuarios
-        self.gestor_usuarios = GestorUsuarios()
+        try:
+            # Referencia al gestor de usuarios
+            self.gestor_usuarios = GestorUsuarios()
+        except Exception as e:
+            QMessageBox.critical(self, "Error Crítico", f"Error al cargar el gestor de usuarios: {e}")
+            return
 
         # Configuración de la interfaz gráfica
         self.central_widget = QWidget()
@@ -49,6 +53,7 @@ class VistaLogin(QMainWindow):
         self.register_button.clicked.connect(self.ir_a_registro)
         self.layout.addWidget(self.register_button)
 
+        # Estilo de la ventana
         self.setStyleSheet("""
             QWidget {
                 background-color: #2E86C1;  /* Fondo azul */
@@ -84,21 +89,37 @@ class VistaLogin(QMainWindow):
         """
         Maneja la lógica de inicio de sesión.
         """
-        username = self.username_edit.text()
-        password = self.password_edit.text()
+        try:
+            username = self.username_edit.text().strip()
+            password = self.password_edit.text().strip()
 
-        valido, mensaje = self.gestor_usuarios.validar_usuario(username, password)
-        if valido:
-            usuario = self.gestor_usuarios.usuarios_df[self.gestor_usuarios.usuarios_df['Nombre de usuario'] == username]
-            user_id = usuario.iloc[0]['ID']  # Obtener el ID del usuario
-            QMessageBox.information(self, "Éxito", mensaje)
-            self.gestor_ventanas.set_user_info(user_id, username)  # Establecer el ID y nombre
-            self.gestor_ventanas.mostrar_principal()
-        else:
-            QMessageBox.warning(self, "Error", mensaje)
+            # Validar que los campos no estén vacíos
+            if not username or not password:
+                QMessageBox.warning(self, "Error", "Por favor, completa todos los campos.")
+                return
+
+            valido, mensaje = self.gestor_usuarios.validar_usuario(username, password)
+            if valido:
+                # Obtener el ID del usuario
+                usuario = self.gestor_usuarios.usuarios_df[
+                    self.gestor_usuarios.usuarios_df['Nombre de usuario'] == username
+                ]
+                user_id = usuario.iloc[0]['ID']
+
+                # Mostrar mensaje de éxito e ir a la ventana principal
+                QMessageBox.information(self, "Éxito", mensaje)
+                self.gestor_ventanas.set_user_info(user_id, username)  # Establecer ID y nombre de usuario
+                self.gestor_ventanas.mostrar_principal()
+            else:
+                QMessageBox.warning(self, "Error", mensaje)
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error al iniciar sesión: {e}")
 
     def ir_a_registro(self):
         """
         Navega a la ventana de registro.
         """
-        self.gestor_ventanas.mostrar_registro()
+        try:
+            self.gestor_ventanas.mostrar_registro()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error al navegar a la ventana de registro: {e}")
