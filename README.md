@@ -1,100 +1,112 @@
-🎥 Sistema de Recomendación en Python
+# 🎬 Sistema de Recomendación en Python
 
 Este proyecto implementa un sistema de recomendación de películas desarrollado en Python, utilizando técnicas de aprendizaje automático y procesamiento de datos. Proporciona recomendaciones personalizadas basadas en la información de los usuarios y las películas disponibles.
 
-🔢 Características
+---
 
-Algoritmos de Recomendación: Implementa técnicas como filtrado colaborativo y contenido basado en el perfil del usuario.
+## 🔧 Características
 
-Dataset de Películas: Utiliza un conjunto de datos enriquecido con información adicional como imágenes.
+- **Algoritmos de Recomendación:** Implementa técnicas como filtrado colaborativo y contenido basado en el perfil del usuario.
+- **Dataset de Películas:** Utiliza un conjunto de datos enriquecido con información adicional como imágenes.
+- **Interfaz Modular:** División clara de la lógica del sistema en módulos bien organizados.
+- **Soporte Multiusuario:** Diseñado para manejar recomendaciones personalizadas para diferentes perfiles.
 
-Interfaz Modular: División clara de la lógica del sistema en módulos bien organizados.
+---
 
-Soporte Multiusuario: Diseñado para manejar recomendaciones personalizadas para diferentes perfiles.
+## 🌐 Estructura del Proyecto
 
-🌐 Estructura del Proyecto
+- **`Main.py`**: Archivo principal para ejecutar el sistema.
+- **`gestores/`**: Contiene la lógica principal del sistema de recomendación.
+- **`vistas/`**: Módulos relacionados con la visualización de los resultados o interacción del usuario.
+- **`usuarios.csv`**: Dataset de usuarios, con información relevante para generar recomendaciones.
+- **`peliculas_final_imagenes.csv`**: Dataset de películas con información adicional (por ejemplo, imágenes).
+- **`requirements.txt`**: Archivo con las dependencias necesarias para ejecutar el proyecto.
 
-Main.py: Archivo principal para ejecutar el sistema.
+---
 
-gestores/: Contiene la lógica principal del sistema de recomendación.
-
-vistas/: Módulos relacionados con la visualización de los resultados o interacción del usuario.
-
-usuarios.csv: Dataset de usuarios, con información relevante para generar recomendaciones.
-
-peliculas_final_imagenes.csv: Dataset de películas con información adicional (por ejemplo, imágenes).
-
-requirements.txt: Archivo con las dependencias necesarias para ejecutar el proyecto.
-
-🔧 Instalación
+## 🚀 Instalación
 
 Para instalar y ejecutar el proyecto localmente:
 
-Clona el repositorio:
+1. **Navega al directorio del proyecto:**
+   ```bash
+   cd Sistema_Recomendacion_Python_Grupo_2
+   ```
 
-git clone https://github.com/Alejandroortega2002/Sistema_Recomendacion_Python_Grupo_2.git
+2. **Crea un entorno virtual (opcional pero recomendado):**
+   ```bash
+   python -m venv venv
+   ```
 
-Navega al directorio del proyecto:
+3. **Activa el entorno virtual:**
+   - En **Windows**:
+     ```bash
+     venv\Scripts\activate
+     ```
+   - En **macOS/Linux**:
+     ```bash
+     source venv/bin/activate
+     ```
 
-cd Sistema_Recomendacion_Python_Grupo_2
+4. **Instala las dependencias:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-Crea un entorno virtual (opcional pero recomendado):
+---
 
-python -m venv venv
+## 🚀 Uso
 
-Activa el entorno virtual:
+1. **Ejecuta el archivo principal para iniciar el sistema:**
+   ```bash
+   python Main.py
+   ```
 
-En Windows:
+2. **Configura los datasets correctamente:**
+   Asegúrate de que los archivos `usuarios.csv` y `peliculas_final_imagenes.csv` estén configurados en las rutas requeridas.
 
-venv\Scripts\activate
+3. **Sigue las instrucciones:**
+   Interactúa con el sistema mediante la consola o la interfaz proporcionada.
 
-En macOS/Linux:
+---
 
-source venv/bin/activate
-
-Instala las dependencias:
-
-pip install -r requirements.txt
-
-🚀 Uso
-
-Ejecuta el archivo principal para iniciar el sistema:
-
-python Main.py
-
-Asegúrate de que los datasets (usuarios.csv y peliculas_final_imagenes.csv) estén correctamente configurados en las rutas requeridas.
-
-Sigue las instrucciones en la consola o interfaz para interactuar con el sistema.
-
-📚 Contribuciones
+## 📚 Contribuciones
 
 ¡Las contribuciones son bienvenidas! Si deseas colaborar en este proyecto, sigue estos pasos:
 
-Haz un fork del repositorio.
+1. **Haz un fork del repositorio.**
+2. **Crea una nueva rama para tu funcionalidad:**
+   ```bash
+   git checkout -b feature/nueva-funcionalidad
+   ```
+3. **Realiza tus cambios y haz un commit:**
+   ```bash
+   git commit -m "Agrego nueva funcionalidad"
+   ```
+4. **Haz push a tu rama:**
+   ```bash
+   git push origin feature/nueva-funcionalidad
+   ```
+5. **Abre un Pull Request** y describe tus cambios.
 
-Crea una nueva rama para tu funcionalidad:
+---
 
-git checkout -b feature/nueva-funcionalidad
+## 📜 Licencia
 
-Realiza tus cambios y haz un commit:
+Este proyecto está bajo la Licencia MIT. Consulta el archivo [LICENSE](LICENSE) para más información.
 
-git commit -m "Agrego nueva funcionalidad"
+---
 
-Haz push a tu rama:
+## 🔗 Enlaces
 
-git push origin feature/nueva-funcionalidad
+- [Repositorio en GitHub](https://github.com/Alejandroortega2002/Sistema_Recomendacion_Python_Grupo_2)
+- [Documentación Oficial de Python](https://docs.python.org/3/)
 
-Abre un Pull Request y describe tus cambios.
+---
+## 📜 Licencia
 
-📄 Licencia
+Adjunto la Memoria del Proyecto por si os interesa.
 
-Este proyecto está bajo la Licencia MIT. Consulta el archivo LICENSE para más información.
-
-🔗 Enlaces
-
-Repositorio en GitHub
-
-Documentación Oficial de Python
-
-🙏¡Gracias por tu interés en este proyecto! No dudes en abrir un issue si tienes preguntas o sugerencias.
-
+---
+🙏 **¡Gracias por tu interés en este proyecto!**  
+No dudes en abrir un issue si tienes preguntas o sugerencias.
