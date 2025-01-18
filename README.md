@@ -103,10 +103,11 @@ Este proyecto está bajo la Licencia MIT. Consulta el archivo [LICENSE](LICENSE)
 - [Documentación Oficial de Python](https://docs.python.org/3/)
 
 ---
-## 📜 Licencia
+## 📄 Documentación
 
-Adjunto la Memoria del Proyecto por si os interesa.
+Puedes descargar la memoria del proyecto en formato PDF:
 
----
+[Descargar la memoria del proyecto](Grupo_2.SSII.Proyecto.pdf)
+
 🙏 **¡Gracias por tu interés en este proyecto!**  
 No dudes en abrir un issue si tienes preguntas o sugerencias.
